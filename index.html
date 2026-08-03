@@ -26,48 +26,47 @@
       </div>
     </header>
 
-    <div class="question-section">
-      <div class="single-question">
-        <label for="question-1"> What's your favorite movie and why? </label>
-        <br />
-        <input type="text" class="input-form" />
+    <form id="movie-form" class="form-section">
+
+      <div class="question-section">
+        <div class="single-question">
+          <label for="question-1"> What's your favorite movie and why? </label>
+          <br />
+          <input type="text" class="input-form" id="favorite-movie" />
+        </div>
+
+        <div class="single-question">
+          <label for="question-1">
+            Are you in the mood for something new or a classic?
+          </label>
+          <br />
+          <input type="text" class="input-form" id="mood" />
+        </div>
+
+        <div class="single-question">
+          <label for="question-1">
+            Do you wanna have fun or do you want something serious?
+          </label>
+          <br />
+          <input type="text" class="input-form" id="preference" />
+        </div>
+
+        <div class="form-footer">
+          <button id="submit-btn" type="button">Let's Go</button>
+        </div>
       </div>
 
-      <div class="single-question">
-        <label for="question-1">
-          Are you in the mood for something new or a classic?
-        </label>
-        <br />
-        <input type="text" class="input-form" />
-      </div>
+    </form>
 
-      <div class="single-question">
-        <label for="question-1">
-          Do you wanna have fun or do you want something serious?
-        </label>
-        <br />
-        <input type="text" class="input-form" />
-      </div>
+    <div class="answer-section" style="display: none;">
+      <h2 class="movie-title"></h2>
+      <p class="movie-description"></p>
+      <p class="movie-runtime"></p>
+      <p class="movie-rating"></p>
 
       <div class="form-footer">
-        <button>Let's Go</button>
+        <button id="go-again-btn" type="button">Go Again</button>
       </div>
-    </div>
-
-    <div class="answer-section">
-
-      <h2 class="movie-title">School of Rock</h2>
-
-      <p class="movie-description">
-        A fun and stupid movie about a wannabe rocker turned fraud substitute
-        teacher forming a rock band with his students to win the Battle of the
-        Bands
-      </p>
-
-      <div class="form-footer">
-        <button>Go Again</button>
-      </div>
-
     </div>
 
     <script type="module" src="index.js"></script>

@@ -50,6 +50,7 @@ header {
 
 .question-section .form-footer button {
     background-color: #51E08A;
+    cursor: pointer;
     width: 100%;
     color: #000c36;
     font-family: "roboto_slabbold";
@@ -72,9 +73,16 @@ header {
     font-size: 16px
 }
 
+.answer-section .movie-runtime, .movie-rating {
+    color: #fff;
+    font-family: "roboto_slabregular";
+    font-size: 14px
+}
+
 .answer-section .form-footer button {
     background-color: #51E08A;
     width: 100%;
+    cursor: pointer;
     color: #000c36;
     font-family: "roboto_slabbold";
     border-radius: 10px;
