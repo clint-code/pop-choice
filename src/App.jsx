@@ -1,5 +1,8 @@
 import { useState } from 'react';
+import { Routes, Route, Link } from 'react-router-dom';
 import { recommendMovie } from './services/recommendMovie';
+import Header from './components/header';
+import StretchGoal from './StretchGoal';
 
 export default function App() {
   const [favoriteMovie, setFavoriteMovie] = useState('');
@@ -35,78 +38,95 @@ export default function App() {
   }
 
   return (
-    <>
-      <header>
-        <div className="logo-section">
-          <img src="/assets/img/PopChoice-Icon.png" alt="pop-choice" />
-          <h1>PopChoice</h1>
-        </div>
-      </header>
 
-      {!showAnswer ? (
-        <form className="form-section question-section" onSubmit={handleSubmit}>
-          <div className="single-question">
-            <label htmlFor="favorite-movie">What's your favorite movie and why?</label>
-            <br />
-            <input
-              type="text"
-              className="input-form"
-              id="favorite-movie"
-              value={favoriteMovie}
-              onChange={(e) => setFavoriteMovie(e.target.value)}
-            />
-          </div>
+    <Routes>
 
-          <div className="single-question">
-            <label htmlFor="mood">Are you in the mood for something new or a classic?</label>
-            <br />
-            <input
-              type="text"
-              className="input-form"
-              id="mood"
-              value={mood}
-              onChange={(e) => setMood(e.target.value)}
-            />
-          </div>
+      <Route path="/" element={
+        <>
+          <Header />
 
-          <div className="single-question">
-            <label htmlFor="preference">
-              Do you wanna have fun or do you want something serious?
-            </label>
-            <br />
-            <input
-              type="text"
-              className="input-form"
-              id="preference"
-              value={preference}
-              onChange={(e) => setPreference(e.target.value)}
-            />
-          </div>
+          {!showAnswer ? (
+            <form className="form-section question-section" onSubmit={handleSubmit}>
+              <div className="single-question">
+                <label htmlFor="favorite-movie">What's your favorite movie and why?</label>
+                <br />
+                <input
+                  type="text"
+                  className="input-form"
+                  id="favorite-movie"
+                  value={favoriteMovie}
+                  onChange={(e) => setFavoriteMovie(e.target.value)}
+                />
+              </div>
 
-          <div className="form-footer">
-            <button type="submit">Let&apos;s Go</button>
-          </div>
-        </form>
-      ) : (
-        <div className="answer-section">
-          {loading && <p className="status-message">Finding your perfect movie…</p>}
-          {error && <p className="error-message">{error}</p>}
-          {movie && (
-            <>
-              <h2 className="movie-title">{movie.title}</h2>
-              <p className="movie-description">{movie.description}</p>
-              <p className="movie-runtime">Runtime: {movie.runtime}</p>
-              <p className="movie-rating">Rating: {movie.rating}</p>
-            </>
+              <div className="single-question">
+                <label htmlFor="mood">Are you in the mood for something new or a classic?</label>
+                <br />
+                <input
+                  type="text"
+                  className="input-form"
+                  id="mood"
+                  value={mood}
+                  onChange={(e) => setMood(e.target.value)}
+                />
+              </div>
+
+              <div className="single-question">
+                <label htmlFor="preference">
+                  Do you wanna have fun or do you want something serious?
+                </label>
+                <br />
+                <input
+                  type="text"
+                  className="input-form"
+                  id="preference"
+                  value={preference}
+                  onChange={(e) => setPreference(e.target.value)}
+                />
+              </div>
+
+              <div className="form-footer">
+                <button
+                  type="submit"
+                  disabled={!favoriteMovie || !mood || !preference}>
+                  Let's Go
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="answer-section">
+              {loading && <p className="status-message">Finding your perfect movie…</p>}
+              {error && <p className="error-message">{error}</p>}
+              {movie && (
+                <>
+                  <h2 className="movie-title">{movie.title}</h2>
+                  <p className="movie-description">{movie.description}</p>
+                  <p className="movie-runtime">Runtime: {movie.runtime}</p>
+                  <p className="movie-rating">Rating: {movie.rating}</p>
+                </>
+              )}
+
+              <div className="form-footer">
+                <button type="button" onClick={handleGoAgain} disabled={loading}>
+                  Go Again
+                </button>
+              </div>
+
+              {/* <Link to="/stretch-goal">
+                <button type="button" onClick={handleGoAgain} disabled={loading}>
+                  Checkout Movie Recommendation 2.0
+                </button>
+              </Link> */}
+            </div>
           )}
+        </>
+      } />
 
-          <div className="form-footer">
-            <button type="button" onClick={handleGoAgain} disabled={loading}>
-              Go Again
-            </button>
-          </div>
-        </div>
-      )}
-    </>
+      <Route
+        path="/stretch-goal"
+        element={<StretchGoal />}
+      />
+    </Routes>
+
   );
 }
