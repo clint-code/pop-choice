@@ -9,10 +9,12 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "2.110.9",
-    "openai": "4.12.3",
     "dotenv": "^17.3.1",
-    "vite": "^7.2.4",
-    "langchain": "0.0.168"
+    "langchain": "0.0.168",
+    "openai": "4.12.3",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "vite": "^7.2.4"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.1.1",

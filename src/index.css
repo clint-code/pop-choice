@@ -1,0 +1,100 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #000c36;
+}
+
+header {
+  width: 50%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.logo-section img {
+  margin-top: 20px;
+}
+
+.logo-section h1 {
+  color: #fff;
+  font-size: 40px;
+  margin-top: 0px;
+  font-family: "carter_oneregular";
+}
+
+.question-section,
+.answer-section {
+  width: 50%;
+  margin: 0 auto;
+}
+
+.question-section .single-question {
+  margin-bottom: 20px;
+}
+
+.question-section .single-question label {
+  font-family: "roboto_slabregular";
+  color: #fff;
+}
+
+.question-section .single-question .input-form {
+  background-color: #3b4877;
+  margin-top: 10px;
+  width: 100%;
+  padding: 15px;
+  color: #fff;
+  font-family: "roboto_slablight";
+  border-radius: 10px;
+  border: none;
+  box-sizing: border-box;
+}
+
+.question-section .form-footer button,
+.answer-section .form-footer button {
+  background-color: #51e08a;
+  cursor: pointer;
+  width: 100%;
+  color: #000c36;
+  font-family: "roboto_slabbold";
+  border-radius: 10px;
+  border: none;
+  margin-top: 15px;
+  padding: 20px;
+  font-size: 25px;
+}
+
+.question-section .form-footer button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.answer-section .movie-title {
+  color: #fff;
+  font-family: "roboto_slabbold";
+  font-size: 25px;
+}
+
+.answer-section .movie-description {
+  color: #fff;
+  font-family: "roboto_slabregular";
+  font-size: 16px;
+}
+
+.answer-section .movie-runtime,
+.answer-section .movie-rating {
+  color: #fff;
+  font-family: "roboto_slabregular";
+  font-size: 14px;
+}
+
+.answer-section .status-message {
+  color: #fff;
+  font-family: "roboto_slabregular";
+  font-size: 16px;
+}
+
+.answer-section .error-message {
+  color: #ff8a8a;
+  font-family: "roboto_slabregular";
+  font-size: 16px;
+}

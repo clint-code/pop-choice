@@ -1,8 +1,9 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PopChoice</title>
-    <link rel="stylesheet" href="index.css" />
     <link rel="stylesheet" href="/assets/fonts/carter_one/stylesheet.css" />
     <link
       rel="stylesheet"
@@ -18,57 +19,7 @@
     />
   </head>
   <body>
-    <header>
-      <div class="logo-section">
-        <img src="/assets/img/PopChoice-Icon.png" alt="pop-choice" />
-
-        <h1>PopChoice</h1>
-      </div>
-    </header>
-
-    <form id="movie-form" class="form-section">
-
-      <div class="question-section">
-        <div class="single-question">
-          <label for="question-1"> What's your favorite movie and why? </label>
-          <br />
-          <input type="text" class="input-form" id="favorite-movie" />
-        </div>
-
-        <div class="single-question">
-          <label for="question-1">
-            Are you in the mood for something new or a classic?
-          </label>
-          <br />
-          <input type="text" class="input-form" id="mood" />
-        </div>
-
-        <div class="single-question">
-          <label for="question-1">
-            Do you wanna have fun or do you want something serious?
-          </label>
-          <br />
-          <input type="text" class="input-form" id="preference" />
-        </div>
-
-        <div class="form-footer">
-          <button id="submit-btn" type="button">Let's Go</button>
-        </div>
-      </div>
-
-    </form>
-
-    <div class="answer-section" style="display: none;">
-      <h2 class="movie-title"></h2>
-      <p class="movie-description"></p>
-      <p class="movie-runtime"></p>
-      <p class="movie-rating"></p>
-
-      <div class="form-footer">
-        <button id="go-again-btn" type="button">Go Again</button>
-      </div>
-    </div>
-
-    <script type="module" src="index.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
