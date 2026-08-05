@@ -5,6 +5,7 @@ import popChoiceLogo from '/assets/img/PopChoice-Icon.png';
 
 export default function StretchGoal() {
     const [noOfPeople, setNoOfPeople] = useState(0);
+    const [peopleCount, setPeopleCount] = useState(0);
     const [timeAvailable, setTimeAvailable] = useState('');
     const [stats, setStats] = useState(false);
 
@@ -16,6 +17,7 @@ export default function StretchGoal() {
 
     function startUserPreferences(e) {
         e.preventDefault();
+        setPeopleCount(1);
         setStats(true);
         console.log('Number of People:', noOfPeople);
         console.log('Time Available:', timeAvailable);
@@ -29,9 +31,20 @@ export default function StretchGoal() {
             movieMood,
             famousPersonPreference,
         };
-        setMovieDataPreferences([...movieDataPreferences, preferences]);
-        console.log('Movie Data Preferences:', movieDataPreferences);
-        console.log('Array length:', movieDataPreferences.length + 1);
+
+        if (movieDataPreferences.length <= noOfPeople) {
+            setMovieDataPreferences([...movieDataPreferences, preferences]);
+            setPeopleCount((prevCount) => prevCount + 1);
+            console.log("Clear form for next person");
+            setFavoriteMovie('');
+            setMovieType('');
+            setMovieMood('');
+            setFamousPersonPreference('');
+        
+        } else {
+            console.log("All preferences collected");
+        }
+
     }
 
     return (
@@ -44,9 +57,11 @@ export default function StretchGoal() {
                         alt="pop-choice"
                         width={99}
                         height={108} />
+
                     <h1 className="text-center text-2xl font-bold mt-5">
-                        {noOfPeople < 1 ? 'PopChoice' : noOfPeople}
+                        {(stats== true && noOfPeople > 0) ? peopleCount : 'PopChoice'}
                     </h1>
+
                 </div>
             </header>
 
@@ -186,10 +201,12 @@ export default function StretchGoal() {
                     </div>
 
                     <div className="form-footer">
+                        <pre className="text-white">No. of people: {noOfPeople}</pre>
+                        <pre className="text-white">Movie preferences array: {movieDataPreferences.length}</pre>
                         <button
                             type="submit"
                             disabled={!favoriteMovie || !movieType || !movieMood || !famousPersonPreference}>
-                            {noOfPeople > 1 ? 'Next Person' : 'Get Movie'}
+                            {(movieDataPreferences.length-1 < noOfPeople) ? 'Next Person' : 'Get Movie'}
                         </button>
                     </div>
                 </form>
