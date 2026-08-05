@@ -7,7 +7,8 @@ export default function Header() {
 
             <header>
                 <div className="logo-section">
-                    <img 
+                    <img
+                        className="my-0 mx-auto" 
                         src={popChoiceLogo} 
                         alt="pop-choice"
                         width={99}
