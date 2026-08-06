@@ -95,7 +95,7 @@ export default function App() {
             </form>
           ) : (
             <div className="answer-section">
-              {loading && <p className="status-message">Finding your perfect movie…</p>}
+              {loading && <p className="status-message animate-pulse">Finding your perfect movie…</p>}
               {error && <p className="error-message">{error}</p>}
               {movie && (
                 <>
@@ -110,13 +110,15 @@ export default function App() {
                 <button type="button" onClick={handleGoAgain} disabled={loading}>
                   Go Again
                 </button>
+
+                <Link to="/pop-choice-2.0">
+                  <button type="button" onClick={handleGoAgain} disabled={loading}>
+                    Checkout PopChoice 2.0
+                  </button>
+                </Link>
+
               </div>
 
-              {/* <Link to="/stretch-goal">
-                <button type="button" onClick={handleGoAgain} disabled={loading}>
-                  Checkout Movie Recommendation 2.0
-                </button>
-              </Link> */}
             </div>
           )}
         </>

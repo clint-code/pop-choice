@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import popChoiceLogo from '/assets/img/PopChoice-Icon.png';
+import { useNavigate } from 'react-router-dom';
 
+import popChoiceLogo from '/assets/img/PopChoice-Icon.png';
 // import Header from './components/header';
 
 export default function StretchGoal() {
@@ -15,12 +16,21 @@ export default function StretchGoal() {
     const [movieType, setMovieType] = useState('');
     const [movieMood, setMovieMood] = useState('');
 
+    const navigate = useNavigate();
+    
+    function clearPersonForm() {
+        setFavoriteMovie('');
+        setMovieType('');
+        setMovieMood('');
+        setFamousPersonPreference('');
+    }
+
     function startUserPreferences(e) {
         e.preventDefault();
+        setMovieDataPreferences([]);
         setPeopleCount(1);
         setStats(true);
-        console.log('Number of People:', noOfPeople);
-        console.log('Time Available:', timeAvailable);
+        clearPersonForm();
     }
 
     function submitMovieDataPreferences(e) {
@@ -32,20 +42,26 @@ export default function StretchGoal() {
             famousPersonPreference,
         };
 
-        if (peopleCount < noOfPeople) {
-            setMovieDataPreferences([...movieDataPreferences, preferences]);
-            setPeopleCount((prevCount) => prevCount + 1);
-            console.log("Clear form for next person");
-            setFavoriteMovie('');
-            setMovieType('');
-            setMovieMood('');
-            setFamousPersonPreference('');
-        
-        } else {
-            console.log("All preferences collected");
+        if (movieDataPreferences.length >= noOfPeople) {
+            return;
         }
 
+        const nextPreferences = [...movieDataPreferences, preferences];
+        setMovieDataPreferences(nextPreferences);
+        setPeopleCount(Math.min(nextPreferences.length + 1, noOfPeople));
+
+        if (nextPreferences.length < noOfPeople) {
+            clearPersonForm();
+        } else {
+            console.log(
+                'All preferences collected, route to Movie Recommendations....',
+                nextPreferences,
+            );
+            navigate('/movie-recommendations');
+        }
     }
+
+    const isLastPerson = movieDataPreferences.length >= noOfPeople - 1;
 
     return (
         <>
@@ -59,7 +75,7 @@ export default function StretchGoal() {
                         height={108} />
 
                     <h1 className="text-center text-2xl font-bold mt-5">
-                        {(stats== true && noOfPeople > 0) ? peopleCount : 'PopChoice'}
+                        {(stats == true && noOfPeople > 0) ? peopleCount : 'PopChoice 2.0'}
                     </h1>
 
                 </div>
@@ -76,7 +92,7 @@ export default function StretchGoal() {
                             placeholder="How many people?"
                             id="no-of-people"
                             value={noOfPeople}
-                            onChange={(e) => setNoOfPeople(e.target.value)}
+                            onChange={(e) => setNoOfPeople(Number(e.target.value))}
                         />
                     </div>
 
@@ -206,7 +222,7 @@ export default function StretchGoal() {
                         <button
                             type="submit"
                             disabled={!favoriteMovie || !movieType || !movieMood || !famousPersonPreference}>
-                            {(peopleCount < noOfPeople) ? 'Next Person' : 'Get Movie'}
+                            {isLastPerson ? 'Get Movie' : 'Next Person'}
                         </button>
                     </div>
                 </form>
