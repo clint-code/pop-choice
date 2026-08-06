@@ -32,7 +32,7 @@ export default function StretchGoal() {
             famousPersonPreference,
         };
 
-        if (movieDataPreferences.length <= noOfPeople) {
+        if (peopleCount < noOfPeople) {
             setMovieDataPreferences([...movieDataPreferences, preferences]);
             setPeopleCount((prevCount) => prevCount + 1);
             console.log("Clear form for next person");
@@ -206,7 +206,7 @@ export default function StretchGoal() {
                         <button
                             type="submit"
                             disabled={!favoriteMovie || !movieType || !movieMood || !famousPersonPreference}>
-                            {(movieDataPreferences.length-1 < noOfPeople) ? 'Next Person' : 'Get Movie'}
+                            {(peopleCount < noOfPeople) ? 'Next Person' : 'Get Movie'}
                         </button>
                     </div>
                 </form>
