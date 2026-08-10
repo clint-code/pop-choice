@@ -1,39 +1,80 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import { getMoviePoster } from './services/getMoviePoster';
 import popChoiceLogo from '/assets/img/PopChoice-Icon.png';
 // import Header from './components/header';
+import { Questions } from './components/Questions';
 
 export default function StretchGoal() {
-    const [noOfPeople, setNoOfPeople] = useState(0);
-    const [peopleCount, setPeopleCount] = useState(0);
+
+    const [allowedNumberofPersons, setAllowedNumberofPersons] = useState(1);
+    const [collectedFormResponses, setCollectedFormResponses] = useState({});
+    const [personCount, setPersonCount] = useState(1);
     const [timeAvailable, setTimeAvailable] = useState('');
     const [stats, setStats] = useState(false);
 
-    const [favoriteMovie, setFavoriteMovie] = useState('');
-    const [famousPersonPreference, setFamousPersonPreference] = useState('');
-    const [movieDataPreferences, setMovieDataPreferences] = useState([]);
-    const [movieType, setMovieType] = useState('');
-    const [movieMood, setMovieMood] = useState('');
+    const [movieDataPreferences, setMovieDataPreferences] = useState({});
+    const [hitAIEndpoint, setHitAIEndpoint] = useState(false);
+    const [allowedNumberOfPeople, setAllowedNumberOfPeople] = useState(1);
 
     const navigate = useNavigate();
-    
-    function clearPersonForm() {
+
+    const clearPersonForm = () => {
         setFavoriteMovie('');
         setMovieType('');
         setMovieMood('');
         setFamousPersonPreference('');
-    }
+    };
 
-    function startUserPreferences(e) {
+    const startUserPreferences = (e) => {
         e.preventDefault();
-        setMovieDataPreferences([]);
-        setPeopleCount(1);
-        setStats(true);
-        clearPersonForm();
-    }
 
-    function submitMovieDataPreferences(e) {
+        const newUserPreferences = {
+            movieStartPreferences: {
+                numberOfPeople: allowedNumberofPersons,
+                movieRuntime: `Movie runtime ${timeAvailable} available`
+            }
+        };
+        setCollectedFormResponses(newUserPreferences);
+
+        setStats(true);
+        console.log("Movie data preference:", newUserPreferences);
+    };
+
+    const handleNextPerson = (e) => {
+        const formData = new FormData(e.target);
+        const userQueryResponses = Object.fromEntries(formData);
+
+        console.log("Form data:", formData);
+        console.log("User query response:", userQueryResponses);
+
+        const userResponses = Object.values(userQueryResponses).join(', ');
+        console.log("User responses:", userResponses);
+
+        const stringifiedQueryAndResponse = Object.entries(userQueryResponses)
+            .map(
+                ([key, value], index) =>
+                    `Question ${index + 1}: ${key}\nAnswer: ${value}`
+            ).join('\n\n');
+
+        console.log("Stringified query and response:", stringifiedQueryAndResponse);
+        
+        setCollectedFormResponses({
+            ...collectedFormResponses,
+            personResponses: [
+                ...(collectedFormResponses?.personResponses ?? []),
+                {
+                    userResponses,
+                    stringifiedQueryAndResponse: `Person ${personCount}: \n\n ${stringifiedQueryAndResponse}`
+                }
+            ]
+        });
+        console.log("Collected form response:",collectedFormResponses);
+        setPersonCount(personCount + 1);
+        
+    };
+
+    const submitMovieDataPreferences = (e) => {
         e.preventDefault();
         const preferences = {
             favoriteMovie,
@@ -42,26 +83,33 @@ export default function StretchGoal() {
             famousPersonPreference,
         };
 
-        if (movieDataPreferences.length >= noOfPeople) {
+        if (movieDataPreferences.length >= allowedNumberofPersons) {
             return;
         }
 
         const nextPreferences = [...movieDataPreferences, preferences];
         setMovieDataPreferences(nextPreferences);
-        setPeopleCount(Math.min(nextPreferences.length + 1, noOfPeople));
+        setPersonCount(Math.min(nextPreferences.length + 1, allowedNumberofPersons));
 
-        if (nextPreferences.length < noOfPeople) {
+        console.log("Next preferences length:", nextPreferences.length);
+
+        if (nextPreferences.length < allowedNumberofPersons) {
             clearPersonForm();
         } else {
             console.log(
                 'All preferences collected, route to Movie Recommendations....',
                 nextPreferences,
             );
-            navigate('/movie-recommendations');
-        }
-    }
 
-    const isLastPerson = movieDataPreferences.length >= noOfPeople - 1;
+            updateGetMoviesState();
+
+        }
+    };
+
+    const updateGetMoviesState = () => {
+
+        navigate('/movie-recommendations');
+    };
 
     return (
         <>
@@ -75,7 +123,7 @@ export default function StretchGoal() {
                         height={108} />
 
                     <h1 className="text-center text-2xl font-bold mt-5">
-                        {(stats == true && noOfPeople > 0) ? peopleCount : 'PopChoice 2.0'}
+                        {(stats == true && allowedNumberofPersons > 0) ? personCount : 'PopChoice 2.0'}
                     </h1>
 
                 </div>
@@ -85,19 +133,27 @@ export default function StretchGoal() {
                 <form className="form-section question-section mb-5" onSubmit={startUserPreferences}>
 
                     <div className="single-question">
-                        <br />
                         <input
                             type="number"
                             className="input-form"
                             placeholder="How many people?"
                             id="no-of-people"
-                            value={noOfPeople}
-                            onChange={(e) => setNoOfPeople(Number(e.target.value))}
+                            value={allowedNumberofPersons}
+                            onChange={(e) => setAllowedNumberofPersons(Number(e.target.value))}
+                            max={5}
+                            min={1}
                         />
+                        {allowedNumberOfPeople &&
+                            parseInt(allowedNumberofPersons) > 5 ? (
+                            <p className='text-red-700 text-sm text-center mt-4'>
+                                Maximum 5 people allowed
+                            </p>
+                        ) : (
+                            ''
+                        )}
                     </div>
 
                     <div className="single-question">
-                        <br />
                         <input
                             type="text"
                             className="input-form"
@@ -111,121 +167,18 @@ export default function StretchGoal() {
                     <div className="form-footer">
                         <button
                             type="submit"
-                            disabled={noOfPeople <= 0 || !timeAvailable}>
+                            disabled={allowedNumberofPersons <= 0 || !timeAvailable || allowedNumberofPersons > 5}>
                             Start
                         </button>
                     </div>
                 </form>
             ) : (
-                <form className="form-section question-section" onSubmit={submitMovieDataPreferences}>
-                    <div className="single-question">
-                        <label htmlFor="favorite-movie">What's your favorite movie and why?</label>
-                        <input
-                            type="text"
-                            className="input-form"
-                            id="favorite-movie"
-                            value={favoriteMovie}
-                            onChange={(e) => setFavoriteMovie(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="single-question">
-                        <label htmlFor="mood">
-                            Are you in the mood for something new or a classic?
-                        </label>
-
-                        <div className="flex gap-4 mt-2">
-                            <button
-                                className={`bg-[#3B4877] text-white rounded-md px-2 py-2 hover:bg-[#273152] ${movieType === 'new' ? 'ring-2 ring-green-600' : ''}`}
-                                type="button"
-                                onClick={() => setMovieType('new')}>
-                                New
-                            </button>
-                            <button
-                                className={`bg-[#3B4877] text-white rounded-md px-2 py-2 hover:bg-[#273152] ${movieType === 'classic' ? 'ring-2 ring-green-600' : ''}`}
-                                type="button"
-                                onClick={() => setMovieType('classic')}>
-                                Classic
-                            </button>
-                        </div>
-
-                        <input
-                            required
-                            type="hidden"
-                            className="input-form"
-                            id="movieType"
-                            value={movieType}
-                        />
-
-                    </div>
-
-                    <div className="single-question">
-
-                        <label htmlFor="mood">
-                            What are you in the mood for?
-                        </label>
-
-                        <div className="flex gap-4 mt-2">
-                            <button
-                                className={`bg-[#3B4877] text-white rounded-md px-2 py-2 hover:bg-[#273152] ${movieMood === 'fun' ? 'ring-2 ring-green-600' : ''}`}
-                                type="button"
-                                onClick={() => setMovieMood('fun')}>
-                                Fun
-                            </button>
-                            <button
-                                className={`bg-[#3B4877] text-white rounded-md px-2 py-2 hover:bg-[#273152] ${movieMood === 'serious' ? 'ring-2 ring-green-600' : ''}`}
-                                type="button"
-                                onClick={() => setMovieMood('serious')}>
-                                Serious
-                            </button>
-                            <button
-                                className={`bg-[#3B4877] text-white rounded-md px-2 py-2 hover:bg-[#273152] ${movieMood === 'inspiring' ? 'ring-2 ring-green-600' : ''}`}
-                                type="button"
-                                onClick={() => setMovieMood('inspiring')}>
-                                Inspiring
-                            </button>
-                            <button
-                                className={`bg-[#3B4877] text-white rounded-md px-2 py-2 hover:bg-[#273152] ${movieMood === 'scary' ? 'ring-2 ring-green-600' : ''}`}
-                                type="button"
-                                onClick={() => setMovieMood('scary')}>
-                                Scary
-                            </button>
-                        </div>
-
-                        <input
-                            required
-                            type="hidden"
-                            className="input-form"
-                            id="movieMood"
-                            value={movieMood}
-                        />
-
-                    </div>
-
-                    <div className="single-question">
-                        <label htmlFor="famous-person-preference">
-                            Which famous film person would you love to be stranded on an island with and why?
-                        </label>
-                        <br />
-                        <input
-                            type="text"
-                            className="input-form"
-                            id="famous-person-preference"
-                            value={famousPersonPreference}
-                            onChange={(e) => setFamousPersonPreference(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="form-footer">
-                        <pre className="text-white">No. of people: {noOfPeople}</pre>
-                        <pre className="text-white">Movie preferences array: {movieDataPreferences.length}</pre>
-                        <button
-                            type="submit"
-                            disabled={!favoriteMovie || !movieType || !movieMood || !famousPersonPreference}>
-                            {isLastPerson ? 'Get Movie' : 'Next Person'}
-                        </button>
-                    </div>
-                </form>
+                <Questions
+                    handleNextPerson={handleNextPerson}
+                    hitAIEndpoint={hitAIEndpoint}
+                    personCount={personCount}
+                    allowedNumberOfPeople={allowedNumberOfPeople}
+                />
             )}
 
         </>

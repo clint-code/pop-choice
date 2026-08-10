@@ -1,12 +1,16 @@
 import { useState } from 'react';
-
+import { CharacterTextSplitter } from 'langchain/text_splitter';
 
 export default function MovieRecommendations() {
 
     // const [movie, setMovie] = useState(null);
 
+    const splitDocument = async () => {
+        const response = await fetch(movies);
+    };
+
     return (
-        <div className="answer-section mt-5">
+        <div className="answer-section">
             {/* {movie && (
                 <>
                     <h2 className="movie-title">{movie.title}</h2>
@@ -16,10 +20,11 @@ export default function MovieRecommendations() {
             )} */}
 
             <>
-                <h2 className="movie-title">The Martian (2006)</h2>
-                <img src="" alt="" />
+                <h2 className="movie-title">Arrival (2016)</h2>
+                <img src="https://image.tmdb.org/t/p/original/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg" alt="" />
                 <p className="movie-description">
-                    The incredible true story of Dieter Dengler epic struggle of survival after being shot down on a mission over Laos during the Vietnam War
+                    With its thought-provoking narrative and stunning visuals, 'Arrival' explores complex themes of communication 
+                    and understanding, making it an inspiring choice that resonates with Person 1's favor for 'Interstellar'.
                 </p>
             </>
 

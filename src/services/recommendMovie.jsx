@@ -1,21 +1,21 @@
 import { openai, supabase } from '../config.js';
 import movies from '../content.js';
-import { OPENAI_API_KEY } from '../config-keys';
+import { OPENAI_API_KEY } from '../config-keys.js';
 
 function toEmbeddingInput(movie) {
   return `${movie.title} (${movie.releaseYear}): ${movie.content}`;
 }
 
-async function getEmbedding(text) {
+const getEmbedding = async (text) => {
   const response = await openai.embeddings.create({
     model: 'text-embedding-ada-002',
     input: text,
   });
 
   return response.data[0].embedding;
-}
+};
 
-async function syncMovieEmbeddings() {
+const syncMovieEmbeddings = async () => {
   const rows = [];
 
   for (const movie of movies) {
@@ -42,9 +42,9 @@ async function syncMovieEmbeddings() {
   if (error) {
     throw new Error(error.message || 'Error inserting rows into Supabase');
   }
-}
+};
 
-async function findNearestMatch(embedding) {
+const findNearestMatch = async (embedding) => {
   const { data, error } = await supabase.rpc('match_popchoice_movies', {
     query_embedding: embedding,
     match_threshold: 0.5,
@@ -60,9 +60,9 @@ async function findNearestMatch(embedding) {
   }
 
   return data[0].content;
-}
+};
 
-async function getChatCompletion(text, query) {
+const getChatCompletion = async (text, query) => {
   const chatMessages = [
     {
       role: 'system',
@@ -99,9 +99,10 @@ async function getChatCompletion(text, query) {
 
   const data = await response.json();
   return JSON.parse(data.choices[0].message.content);
-}
+};
 
 export async function recommendMovie(favoriteMovie, mood, preference) {
+
   const query = `${favoriteMovie} ${mood} ${preference}`;
 
   await syncMovieEmbeddings();
