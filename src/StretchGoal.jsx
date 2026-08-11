@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMoviePoster } from './services/getMoviePoster';
+import { getMovieDBAccess } from './services/loginToMovieDBApi';
+import { getAIMovieResponses } from './services/searchMovieRecommendations';
+
 import popChoiceLogo from '/assets/img/PopChoice-Icon.png';
 // import Header from './components/header';
 import { Questions } from './components/Questions';
@@ -15,7 +18,7 @@ export default function StretchGoal() {
 
     const [movieDataPreferences, setMovieDataPreferences] = useState({});
     const [hitAIEndpoint, setHitAIEndpoint] = useState(false);
-    const [allowedNumberOfPeople, setAllowedNumberOfPeople] = useState(1);
+    //const [allowedNumberOfPeople, setAllowedNumberOfPeople] = useState(1);
 
     const navigate = useNavigate();
 
@@ -45,7 +48,39 @@ export default function StretchGoal() {
         const formData = new FormData(e.target);
         const userQueryResponses = Object.fromEntries(formData);
 
-        console.log("Form data:", formData);
+        const userResponses = Object.values(userQueryResponses).join(', ');
+
+        const stringifiedQueryAndResponse = Object.entries(userQueryResponses)
+            .map(
+                ([key, value], index) =>
+                    `Question ${index + 1}: ${key}\nAnswer: ${value}`
+            ).join('\n\n');
+
+
+        setCollectedFormResponses({
+            ...collectedFormResponses,
+            personResponses: [
+                ...(collectedFormResponses?.personResponses ?? []),
+                {
+                    userResponses,
+                    stringifiedQueryAndResponse: `Person ${personCount}: \n\n ${stringifiedQueryAndResponse}`
+                }
+            ]
+        });
+        setPersonCount(personCount + 1);
+
+        console.log("Collected form response:", collectedFormResponses + "For the person count" + personCount);
+
+    };
+
+    const handleFinalMovieSubmission = async (e) => {
+
+        e.preventDefault();
+
+        setHitAIEndpoint(true);
+
+        const formData = new FormData(e.target);
+        const userQueryResponses = Object.fromEntries(formData);
         console.log("User query response:", userQueryResponses);
 
         const userResponses = Object.values(userQueryResponses).join(', ');
@@ -58,57 +93,50 @@ export default function StretchGoal() {
             ).join('\n\n');
 
         console.log("Stringified query and response:", stringifiedQueryAndResponse);
-        
-        setCollectedFormResponses({
-            ...collectedFormResponses,
-            personResponses: [
-                ...(collectedFormResponses?.personResponses ?? []),
-                {
-                    userResponses,
-                    stringifiedQueryAndResponse: `Person ${personCount}: \n\n ${stringifiedQueryAndResponse}`
-                }
-            ]
-        });
-        console.log("Collected form response:",collectedFormResponses);
-        setPersonCount(personCount + 1);
-        
-    };
 
-    const submitMovieDataPreferences = (e) => {
-        e.preventDefault();
-        const preferences = {
-            favoriteMovie,
-            movieType,
-            movieMood,
-            famousPersonPreference,
-        };
+        const finalResponses = { ...collectedFormResponses };
+        console.log("Final responses:", finalResponses);
 
-        if (movieDataPreferences.length >= allowedNumberofPersons) {
-            return;
-        }
-
-        const nextPreferences = [...movieDataPreferences, preferences];
-        setMovieDataPreferences(nextPreferences);
-        setPersonCount(Math.min(nextPreferences.length + 1, allowedNumberofPersons));
-
-        console.log("Next preferences length:", nextPreferences.length);
-
-        if (nextPreferences.length < allowedNumberofPersons) {
-            clearPersonForm();
+        if (finalResponses.personResponses) {
+            finalResponses.personResponses.push({
+                userResponses,
+                stringifiedQueryAndResponse: `Person ${personCount}: \n\n ${stringifiedQueryAndResponse}`
+            });
         } else {
-            console.log(
-                'All preferences collected, route to Movie Recommendations....',
-                nextPreferences,
-            );
-
-            updateGetMoviesState();
-
+            finalResponses.personResponses = [{
+                userResponses,
+                stringifiedQueryAndResponse: `Person ${personCount}: \n\n ${stringifiedQueryAndResponse}`
+            }];
         }
+
+        try {
+            const movieDbResponse = await getMovieDBAccess();
+            
+            getAIMovieRecommendations(finalResponses.movieDataPreferences, finalResponses.personResponses);
+
+        } catch (error) {
+
+            console.log("Error!", error);
+        }
+
     };
 
-    const updateGetMoviesState = () => {
+    const getAIMovieRecommendations = async (movieDataPreferences, personResponses) => {
+        console.log("Hit AI API endpoint!", movieDataPreferences, personResponses);
 
-        navigate('/movie-recommendations');
+        const openAIResponse = await getAIMovieResponses(movieDataPreferences, personResponses);
+
+        console.log("Open AI response:", openAIResponse);
+
+        if (openAIResponse) {
+
+            setHitAIEndpoint(false);
+            console.log("Open AI response:", openAIResponse);
+            //const data = await openAIResponse.json();
+            //console.log(JSON.parse(data.content));
+
+        }
+
     };
 
     return (
@@ -123,7 +151,7 @@ export default function StretchGoal() {
                         height={108} />
 
                     <h1 className="text-center text-2xl font-bold mt-5">
-                        {(stats == true && allowedNumberofPersons > 0) ? personCount : 'PopChoice 2.0'}
+                        {stats ? personCount : 'PopChoice 2.0'}
                     </h1>
 
                 </div>
@@ -138,12 +166,13 @@ export default function StretchGoal() {
                             className="input-form"
                             placeholder="How many people?"
                             id="no-of-people"
+                            required
                             value={allowedNumberofPersons}
                             onChange={(e) => setAllowedNumberofPersons(Number(e.target.value))}
                             max={5}
                             min={1}
                         />
-                        {allowedNumberOfPeople &&
+                        {allowedNumberofPersons &&
                             parseInt(allowedNumberofPersons) > 5 ? (
                             <p className='text-red-700 text-sm text-center mt-4'>
                                 Maximum 5 people allowed
@@ -159,6 +188,7 @@ export default function StretchGoal() {
                             className="input-form"
                             placeholder="How much time do you have?"
                             id="time-available"
+                            required
                             value={timeAvailable}
                             onChange={(e) => setTimeAvailable(e.target.value)}
                         />
@@ -167,17 +197,18 @@ export default function StretchGoal() {
                     <div className="form-footer">
                         <button
                             type="submit"
-                            disabled={allowedNumberofPersons <= 0 || !timeAvailable || allowedNumberofPersons > 5}>
+                            disabled={!timeAvailable || allowedNumberofPersons > 5 || !allowedNumberofPersons}>
                             Start
                         </button>
                     </div>
                 </form>
             ) : (
                 <Questions
+                    handleFinalMovieSubmission={handleFinalMovieSubmission}
                     handleNextPerson={handleNextPerson}
                     hitAIEndpoint={hitAIEndpoint}
                     personCount={personCount}
-                    allowedNumberOfPeople={allowedNumberOfPeople}
+                    allowedNumberofPersons={allowedNumberofPersons}
                 />
             )}
 
