@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
-import { OPENAI_API_KEY, SUPABASE_API_KEY, SUPABASE_URL } from './config-keys';
+import { OPENAI_API_KEY, SUPABASE_API_KEY, SUPABASE_URL, OPENAI_EMBEDDING_MODEL } from './config-keys';
 
 if (!OPENAI_API_KEY) throw new Error('OpenAI API key is missing or invalid.');
 export const openai = new OpenAI({

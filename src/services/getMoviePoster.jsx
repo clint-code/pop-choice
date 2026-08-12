@@ -6,8 +6,7 @@ export const getMoviePoster = async ( currentMovie) => {
 
   try {
     const response = await fetch(
-      `https://api.themoviedb.org/3/search/movie?${currentMovie?.title}include_adult=false&language=en-US&page=1`,
-      // "https://api.themoviedb.org/3/search/movie?include_adult=false&language=en-US&page=1",
+      `https://api.themoviedb.org/3/search/movie?${currentMovie?.title}include_adult=false&language=en-US&primary_release_year=${currentMovie?.releaseYear}&page=1`,
       {
         method: 'GET',
         headers: {
@@ -16,6 +15,9 @@ export const getMoviePoster = async ( currentMovie) => {
         }
       }
     );
+    const data = await response.json(); 
+    console.log("Data:", data);
+    
   } catch (error) {
     console.error('Error getting movie poster:', error);
   }

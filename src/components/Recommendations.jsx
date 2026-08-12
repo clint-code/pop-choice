@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { getMoviePoster } from '../services/getMoviePoster';
 
-export const Recommendations = () => {
+export const Recommendations = ({ movieRecommendations, handleGoAgain}) => {
 
     return (
         <div className="answer-section">

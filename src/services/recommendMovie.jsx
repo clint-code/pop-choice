@@ -1,6 +1,6 @@
 import { openai, supabase } from '../config.js';
 import movies from '../content.js';
-import { OPENAI_API_KEY } from '../config-keys.js';
+import { OPENAI_API_KEY, OPENAI_EMBEDDING_MODEL } from '../config-keys.js';
 
 function toEmbeddingInput(movie) {
   return `${movie.title} (${movie.releaseYear}): ${movie.content}`;
@@ -8,7 +8,7 @@ function toEmbeddingInput(movie) {
 
 const getEmbedding = async (text) => {
   const response = await openai.embeddings.create({
-    model: 'text-embedding-ada-002',
+    model: OPENAI_EMBEDDING_MODEL,
     input: text,
   });
 

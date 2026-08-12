@@ -1,8 +1,9 @@
-import { OPENAI_API_KEY } from '../config-keys.js';
+import { openai, supabase } from '../config.js';
+import { OPENAI_API_KEY, OPENAI_EMBEDDING_MODEL } from '../config-keys.js';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 
-const splitDocument = async() => {
-    const response = await fetch ('./movies.txt');
+const splitDocument = async (documentToSplit) => {
+    const response = await fetch(documentToSplit);
     const text = await response.text();
 
     const splitter = new RecursiveCharacterTextSplitter({
@@ -10,12 +11,39 @@ const splitDocument = async() => {
         chunkOverlap: 15
     });
 
-    const output = await splitter.createDocuments([text]);
-}
+    const splitText = await splitter.createDocuments([text]);
+
+    return splitText;
+};
+
+const createAndStoreEmbeddings = async () => {
+    const movieChunkData = await splitDocument('./movies.txt');
+
+    const movieData = await Promise.all(
+
+        movieChunkData.map(async (chunk) => {
+            const embeddingResponse = await openai.embeddings.create({
+                model: OPENAI_EMBEDDING_MODEL,
+                input: chunk.pageContent,
+            });
+
+            return {
+                content: chunk.pageContent,
+                embedding: embeddingResponse.data[0].embedding
+            };
+
+        })
+    );
+
+    const { data, error } = await supabase
+    .from('popchoice_movies')
+    .upsert(movieData, { onConflict: 'content_hash' });
+
+};
 
 export const getAIMovieResponses = async (combinedFinalResponses) => {
 
-    await splitDocument();
+    await createAndStoreEmbeddings();
 
     const chatMessages = [
         {
