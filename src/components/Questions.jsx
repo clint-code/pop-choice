@@ -26,9 +26,6 @@ export const Questions = ({
         e.preventDefault();
 
         if (personCount >= allowedNumberofPersons) {
-            console.log("Person count:", personCount);
-            console.log("Allowed persons:", allowedNumberofPersons);
-            
             handleFinalMovieSubmission(e);
 
         } else {

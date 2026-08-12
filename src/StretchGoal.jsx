@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMoviePoster } from './services/getMoviePoster';
-import { getMovieDBAccess } from './services/loginToMovieDBApi';
+// import { getMovieDBAccess } from './services/loginToMovieDBApi';
 import { getAIMovieResponses } from './services/searchMovieRecommendations';
+
+import { THEMOVIEDB_API_KEY } from './config-keys';
 
 import popChoiceLogo from '/assets/img/PopChoice-Icon.png';
 // import Header from './components/header';
 import { Questions } from './components/Questions';
+import { Recommendations } from './components/Recommendations';
 
 export default function StretchGoal() {
 
@@ -15,19 +18,10 @@ export default function StretchGoal() {
     const [personCount, setPersonCount] = useState(1);
     const [timeAvailable, setTimeAvailable] = useState('');
     const [stats, setStats] = useState(false);
-
-    const [movieDataPreferences, setMovieDataPreferences] = useState({});
     const [hitAIEndpoint, setHitAIEndpoint] = useState(false);
-    //const [allowedNumberOfPeople, setAllowedNumberOfPeople] = useState(1);
-
+    const [aIMovieResponses, setAIMovieResponses] = useState([]);
+    const [aIMovieRecommendations, setAIMovieRecommendations] = useState(false);
     const navigate = useNavigate();
-
-    const clearPersonForm = () => {
-        setFavoriteMovie('');
-        setMovieType('');
-        setMovieMood('');
-        setFamousPersonPreference('');
-    };
 
     const startUserPreferences = (e) => {
         e.preventDefault();
@@ -110,28 +104,40 @@ export default function StretchGoal() {
         }
 
         try {
-            const movieDbResponse = await getMovieDBAccess();
-            
-            getAIMovieRecommendations(finalResponses.movieDataPreferences, finalResponses.personResponses);
-
+            const response = await fetch(
+                `https://api.themoviedb.org/3/authentication`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${THEMOVIEDB_API_KEY}`
+                    }
+                }
+            );
+            await response.json();
         } catch (error) {
+            console.error('Error getting movie poster:', error);
 
-            console.log("Error!", error);
+            throw error;
         }
+
+        getAIMovieRecommendations(finalResponses);
 
     };
 
-    const getAIMovieRecommendations = async (movieDataPreferences, personResponses) => {
-        console.log("Hit AI API endpoint!", movieDataPreferences, personResponses);
+    const getAIMovieRecommendations = async (finalResponses) => {
+        console.log("Movie data preference and responses:", finalResponses);
 
-        const openAIResponse = await getAIMovieResponses(movieDataPreferences, personResponses);
+        const openAIResponse = await getAIMovieResponses(finalResponses);
 
         console.log("Open AI response:", openAIResponse);
+        setHitAIEndpoint(false);
+        setAIMovieResponses();
+        setAIMovieRecommendations(true);
 
         if (openAIResponse) {
 
-            setHitAIEndpoint(false);
-            console.log("Open AI response:", openAIResponse);
+            // console.log("Open AI response:", openAIResponse);
             //const data = await openAIResponse.json();
             //console.log(JSON.parse(data.content));
 
@@ -139,80 +145,102 @@ export default function StretchGoal() {
 
     };
 
+    const handleGoAgain = () => {
+        setHitAIEndpoint(false);
+        setAIMovieRecommendations(false);
+        setPersonCount(1);
+        setAllowedNumberofPersons(1);
+        setTimeAvailable('');
+    };
+
     return (
-        <>
-            <header>
-                <div className="logo-section">
-                    <img
-                        className="my-0 mx-auto"
-                        src={popChoiceLogo}
-                        alt="pop-choice"
-                        width={99}
-                        height={108} />
 
-                    <h1 className="text-center text-2xl font-bold mt-5">
-                        {stats ? personCount : 'PopChoice 2.0'}
-                    </h1>
+        <div className='pop-choice'>
+            {aIMovieRecommendations ? (
+                <Recommendations />
+            ) : (
+                <>
+                    <header>
+                        <div className="logo-section">
+                            <img
+                                className="my-0 mx-auto"
+                                src={popChoiceLogo}
+                                alt="pop-choice"
+                                width={99}
+                                height={108} />
 
-                </div>
-            </header>
+                            <h1 className="text-center text-2xl font-bold mt-5">
+                                {stats ? personCount : 'PopChoice 2.0'}
+                            </h1>
 
-            {!stats ? (
-                <form className="form-section question-section mb-5" onSubmit={startUserPreferences}>
+                        </div>
+                    </header>
 
-                    <div className="single-question">
-                        <input
-                            type="number"
-                            className="input-form"
-                            placeholder="How many people?"
-                            id="no-of-people"
-                            required
-                            value={allowedNumberofPersons}
-                            onChange={(e) => setAllowedNumberofPersons(Number(e.target.value))}
-                            max={5}
-                            min={1}
-                        />
-                        {allowedNumberofPersons &&
-                            parseInt(allowedNumberofPersons) > 5 ? (
-                            <p className='text-red-700 text-sm text-center mt-4'>
-                                Maximum 5 people allowed
-                            </p>
+                    <div className='mt-2 p-8'>
+                        {!stats ? (
+                            <form className="form-section question-section mb-5" onSubmit={startUserPreferences}>
+
+                                {/**Question 1: How many people */}
+                                <div className="single-question">
+                                    <input
+                                        type="number"
+                                        className="input-form"
+                                        placeholder="How many people?"
+                                        id="no-of-people"
+                                        required
+                                        value={allowedNumberofPersons}
+                                        onChange={(e) => setAllowedNumberofPersons(Number(e.target.value))}
+                                        max={5}
+                                        min={1}
+                                    />
+                                    {allowedNumberofPersons &&
+                                        parseInt(allowedNumberofPersons) > 5 ? (
+                                        <p className='text-red-700 text-sm text-center mt-4'>
+                                            Maximum 5 people allowed
+                                        </p>
+                                    ) : (
+                                        ''
+                                    )}
+                                </div>
+                                
+                                {/**Question 2: How much time do you have */}
+                                <div className="single-question">
+                                    <input
+                                        type="text"
+                                        className="input-form"
+                                        placeholder="How much time do you have?"
+                                        id="time-available"
+                                        required
+                                        value={timeAvailable}
+                                        onChange={(e) => setTimeAvailable(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="form-footer">
+                                    <button
+                                        type="submit"
+                                        disabled={!timeAvailable || allowedNumberofPersons > 5 || !allowedNumberofPersons}>
+                                        Start
+                                    </button>
+                                </div>
+                                
+                            </form>
                         ) : (
-                            ''
+                            <Questions
+                                handleFinalMovieSubmission={handleFinalMovieSubmission}
+                                handleNextPerson={handleNextPerson}
+                                hitAIEndpoint={hitAIEndpoint}
+                                personCount={personCount}
+                                allowedNumberofPersons={allowedNumberofPersons}
+                            />
                         )}
                     </div>
+                </>
 
-                    <div className="single-question">
-                        <input
-                            type="text"
-                            className="input-form"
-                            placeholder="How much time do you have?"
-                            id="time-available"
-                            required
-                            value={timeAvailable}
-                            onChange={(e) => setTimeAvailable(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="form-footer">
-                        <button
-                            type="submit"
-                            disabled={!timeAvailable || allowedNumberofPersons > 5 || !allowedNumberofPersons}>
-                            Start
-                        </button>
-                    </div>
-                </form>
-            ) : (
-                <Questions
-                    handleFinalMovieSubmission={handleFinalMovieSubmission}
-                    handleNextPerson={handleNextPerson}
-                    hitAIEndpoint={hitAIEndpoint}
-                    personCount={personCount}
-                    allowedNumberofPersons={allowedNumberofPersons}
-                />
             )}
+        </div>
 
-        </>
+
     );
 
 
