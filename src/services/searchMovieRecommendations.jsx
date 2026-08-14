@@ -35,15 +35,48 @@ const createAndStoreEmbeddings = async () => {
         })
     );
 
-    const { data, error } = await supabase
-    .from('popchoice_movies')
-    .upsert(movieData, { onConflict: 'content_hash' });
+    // const { data, error } = await supabase
+    //     .from('match_movienight_choice')
+    //     .upsert(movieData, { onConflict: 'unique_content_hash' });
+
+    await supabase.from('movienight_choice').insert(movieData);
+    console.log("Embedding and storing is COMPLETE!");
+};
+
+const getQueryEmbedding = async (text) => {
+    const embeddingResponse = await openai.embeddings.create({
+        model: OPENAI_EMBEDDING_MODEL,
+        input: text,
+    });
+    return embeddingResponse.data[0].embedding;
+};
+
+const findNearestMatch = async (embedding) => {
+    const { data, error } = await supabase.rpc('match_movienight_choice', {
+        query_embedding: embedding,
+        match_threshold: 0.5,
+        match_count: 1,
+    });
+
+    console.log("Embedding:", embedding);
+
+    console.log("Nearest match data:", data);
+
+    if (error) {
+        throw new Error(error.message || 'Error finding nearest match');
+    }
+
+    if (!data?.[0]?.content) {
+        throw new Error('No matching movie found');
+    }
+
+    return data[0].content;
 
 };
 
-export const getAIMovieResponses = async (combinedFinalResponses) => {
-
-    await createAndStoreEmbeddings();
+const getChatCompletion = async (text, query) => {
+    console.log("Get chat completion, Text:", text);
+    console.log("Get chat completion, Query", query);
 
     const chatMessages = [
         {
@@ -58,38 +91,53 @@ export const getAIMovieResponses = async (combinedFinalResponses) => {
         },
         {
             role: 'user',
-            content: JSON.stringify(combinedFinalResponses)
+            //content: JSON.stringify(combinedFinalResponses)
+            content: `Context: ${text} Question: ${query}`,
         }
     ];
 
-    // try {
-    //     const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //             Authorization: `Bearer ${OPENAI_API_KEY}`,
-    //         },
-    //         body: JSON.stringify({
-    //             model: 'gpt-4o-mini',
-    //             messages: chatMessages,
-    //             temperature: 0.5,
-    //             //frequency_penalty: 0.5,
-    //         }),
-    //     });
+    try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${OPENAI_API_KEY}`,
+            },
+            body: JSON.stringify({
+                model: 'gpt-4o-mini',
+                response_format: {type: 'json_object'},
+                messages: chatMessages,
+                temperature: 0.5,
+                frequency_penalty: 0.5,
+            }),
+        });
 
-    //     const data = await response.json();
-    //     console.log("Data from AI Response:",data);
+        if (!response.ok) {
+            throw new Error(`OpenAI request failed (${response.status})`);
+        }
 
-    //     if (!response.ok) {
-    //         throw new Error(`OpenAI request failed (${response.status})`);
-    //     }
+        const data = await response.json();
+        //console.log("Data from AI Response:", JSON.parse(data.content));
 
-    //     return JSON.parse(data.choices[0].message.content);
+        return JSON.parse(data.choices[0].message.content);
 
-    // } catch (error) {
-    //     console.error('Error getting movie poster:', error);
+    } catch (error) {
+        console.error('Error getting movie poster:', error);
 
-    //     throw error;
-    // }
+        throw error;
+    }
+};
+
+export const getAIMovieResponses = async (finalResponses) => {
+
+    const queryText = JSON.stringify(finalResponses);
+    const queryEmbedding = await getQueryEmbedding(queryText);
+    const match = await findNearestMatch(queryEmbedding);
+
+    console.log("Match:", match);
+    console.log("Query:", queryText);
+    console.log("Query embedding:", queryEmbedding);
+
+    return getChatCompletion(match, queryText);
 
 };

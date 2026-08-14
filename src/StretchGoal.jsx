@@ -63,8 +63,6 @@ export default function StretchGoal() {
         });
         setPersonCount(personCount + 1);
 
-        console.log("Collected form response:", collectedFormResponses + "For the person count" + personCount);
-
     };
 
     const handleFinalMovieSubmission = async (e) => {
@@ -75,10 +73,8 @@ export default function StretchGoal() {
 
         const formData = new FormData(e.target);
         const userQueryResponses = Object.fromEntries(formData);
-        console.log("User query response:", userQueryResponses);
 
         const userResponses = Object.values(userQueryResponses).join(', ');
-        console.log("User responses:", userResponses);
 
         const stringifiedQueryAndResponse = Object.entries(userQueryResponses)
             .map(
@@ -86,10 +82,8 @@ export default function StretchGoal() {
                     `Question ${index + 1}: ${key}\nAnswer: ${value}`
             ).join('\n\n');
 
-        console.log("Stringified query and response:", stringifiedQueryAndResponse);
 
         const finalResponses = { ...collectedFormResponses };
-        console.log("Final responses:", finalResponses);
 
         if (finalResponses.personResponses) {
             finalResponses.personResponses.push({
@@ -128,20 +122,18 @@ export default function StretchGoal() {
     const getAIMovieRecommendations = async (finalResponses) => {
         console.log("Movie data preference and responses:", finalResponses);
 
-        const openAIResponse = await getAIMovieResponses(finalResponses);
+        const data = await getAIMovieResponses(finalResponses);
 
-        console.log("Open AI response:", openAIResponse);
+        console.log("API Response:", data);
+        const movieTitle = data.title;
+        const movieDescription = data.description;
+
+        console.log("Movie title:",movieTitle);
+        console.log("Data:", JSON.parse(data));
+
         setHitAIEndpoint(false);
-        setAIMovieResponses();
+        //setAIMovieResponses();
         setAIMovieRecommendations(true);
-
-        if (openAIResponse) {
-
-            // console.log("Open AI response:", openAIResponse);
-            //const data = await openAIResponse.json();
-            //console.log(JSON.parse(data.content));
-
-        }
 
     };
 

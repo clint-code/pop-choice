@@ -51,6 +51,8 @@ const findNearestMatch = async (embedding) => {
     match_count: 1,
   });
 
+  console.log("Embedding:", embedding);
+
   if (error) {
     throw new Error(error.message || 'Error finding nearest match');
   }
@@ -63,6 +65,9 @@ const findNearestMatch = async (embedding) => {
 };
 
 const getChatCompletion = async (text, query) => {
+  console.log("Get chat completion, Text:", text);
+  console.log("Get chat completion, Query", query);
+
   const chatMessages = [
     {
       role: 'system',
@@ -109,6 +114,10 @@ export async function recommendMovie(favoriteMovie, mood, preference) {
 
   const queryEmbedding = await getEmbedding(query);
   const match = await findNearestMatch(queryEmbedding);
+
+  console.log("Match:", match);
+  console.log("Query:", query);
+  console.log("Query embedding:", queryEmbedding);
 
   return getChatCompletion(match, query);
 }
