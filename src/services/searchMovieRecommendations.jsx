@@ -117,7 +117,6 @@ const getChatCompletion = async (text, query) => {
         }
 
         const data = await response.json();
-        //console.log("Data from AI Response:", JSON.parse(data.content));
 
         return JSON.parse(data.choices[0].message.content);
 
