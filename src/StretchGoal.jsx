@@ -110,37 +110,42 @@ export default function StretchGoal() {
             );
             await response.json();
         } catch (error) {
-            console.error('Error getting movie poster:', error);
+            console.error('Error! ', error);
 
             throw error;
         }
 
-        getAIMovieRecommendations(finalResponses);
+        await getAIMovieRecommendations(finalResponses);
 
     };
 
     const getAIMovieRecommendations = async (finalResponses) => {
         console.log("Movie data preference and responses:", finalResponses);
 
-        const data = await getAIMovieResponses(finalResponses);
+        try {
+            const data = await getAIMovieResponses(finalResponses);
+            const movieTitle = data.title;
+            const movieDescription = data.description;
 
-        console.log("API Response:", data);
-        const movieTitle = data.title;
-        const movieDescription = data.description;
+            console.log("Data:", data);
 
-        console.log("Movie title:",movieTitle);
-        console.log("Data:", JSON.parse(data));
-
-        setHitAIEndpoint(false);
-        //setAIMovieResponses();
-        setAIMovieRecommendations(true);
+            setHitAIEndpoint(false);
+            setAIMovieResponses(data);
+            setAIMovieRecommendations(true);
+        } catch (error) {
+            console.error('Error:', error);
+            setHitAIEndpoint(false);
+            throw error;
+        }
 
     };
 
-    const handleGoAgain = () => {
+    const handleRepeat = () => {
         setHitAIEndpoint(false);
         setAIMovieRecommendations(false);
+        setAIMovieResponses([]);
         setPersonCount(1);
+        setStats(false);
         setAllowedNumberofPersons(1);
         setTimeAvailable('');
     };
@@ -149,7 +154,10 @@ export default function StretchGoal() {
 
         <div className='pop-choice'>
             {aIMovieRecommendations ? (
-                <Recommendations />
+                <Recommendations
+                    movieAIRecommendations={aIMovieResponses}
+                    handleRepeat = {handleRepeat}
+                 />
             ) : (
                 <>
                     <header>
@@ -194,7 +202,7 @@ export default function StretchGoal() {
                                         ''
                                     )}
                                 </div>
-                                
+
                                 {/**Question 2: How much time do you have */}
                                 <div className="single-question">
                                     <input
@@ -215,7 +223,7 @@ export default function StretchGoal() {
                                         Start
                                     </button>
                                 </div>
-                                
+
                             </form>
                         ) : (
                             <Questions

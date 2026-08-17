@@ -2,33 +2,101 @@ import { openai, supabase } from '../config.js';
 import { OPENAI_API_KEY, OPENAI_EMBEDDING_MODEL } from '../config-keys.js';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 
-const splitDocument = async (documentToSplit) => {
-    const response = await fetch(documentToSplit);
-    const text = await response.text();
+const chunkMovies = async (movies) => {
 
     const splitter = new RecursiveCharacterTextSplitter({
         chunkSize: 150,
         chunkOverlap: 15
     });
 
-    const splitText = await splitter.createDocuments([text]);
+    const allChunks = [];
 
-    return splitText;
+    for (const movie of movies) {
+        const chunks = await splitter.createDocuments([movie.content]);
+
+        for (const chunk of chunks) {
+            allChunks.push({
+                title: movie.title,
+                yearOfRelease: movie.yearOfRelease,
+                description: movie.description,
+                content: chunk.pageContent,
+            });
+        }
+
+    }
+
+    return allChunks;
+};
+
+const parseMovieEntry = async () => {
+
+    //load movies.txt as one string
+    const text = await fetch('./movies.txt').then(res => res.text());
+
+    //split the text into movie blocks
+    const movieBlocks = text
+        .split(/\n\s*\n/)
+        .map(block => block.trim())
+        .filter(Boolean);
+
+    const movies = [];
+
+    for (const block of movieBlocks) {
+        const lines = block.split('\n');
+
+        const firstLine = lines[0];
+        const description = lines.slice(1).join(' ');
+
+        const [titlePart, rest] = firstLine.split(':');
+        const title = titlePart.trim();
+        const yearOfRelease = rest.trim().split('|')[0].trim();
+
+        //console.log("Movie title structure:", movies);
+
+        movies.push({
+            title,
+            yearOfRelease,
+            description,
+            content: `${title}: ${yearOfRelease} | ${description}`
+        });
+
+    }
+
+    return movies;
+
+};
+
+const ensureEmbeddingsExist = async () => {
+    const { count } = await supabase
+        .from('movienight_choice')
+        .select('*', { count: 'exact', head: true });
+    if (count === 0) {
+        await createAndStoreEmbeddings();
+    }
 };
 
 const createAndStoreEmbeddings = async () => {
-    const movieChunkData = await splitDocument('./movies.txt');
 
+    // 1. Parse movies.txt into structured objects
+    const movies = await parseMovieEntry();
+
+    //Embed each chunk and attach metadata for Supabase
     const movieData = await Promise.all(
 
-        movieChunkData.map(async (chunk) => {
+        movies.map(async (movie) => {
+            console.log('Embedding input:', movie?.content);
+            console.log('Type:', typeof ( movie?.content));
+
             const embeddingResponse = await openai.embeddings.create({
                 model: OPENAI_EMBEDDING_MODEL,
-                input: chunk.pageContent,
+                input: movie.content,
             });
 
             return {
-                content: chunk.pageContent,
+                title: movie.title,
+                year_of_release: movie.yearOfRelease,
+                description: movie.description,
+                content: movie.content,
                 embedding: embeddingResponse.data[0].embedding
             };
 
@@ -40,6 +108,15 @@ const createAndStoreEmbeddings = async () => {
     //     .upsert(movieData, { onConflict: 'unique_content_hash' });
 
     await supabase.from('movienight_choice').insert(movieData);
+
+    // const { error } = await supabase
+    //     .from('movienight_choice')
+    //     .upsert(movieData, { onConflict: ['title'] });
+
+    if (error) {
+        throw new Error(error.message || 'Error inserting rows into Supabase');
+    }
+
     console.log("Embedding and storing is COMPLETE!");
 };
 
@@ -51,16 +128,12 @@ const getQueryEmbedding = async (text) => {
     return embeddingResponse.data[0].embedding;
 };
 
-const findNearestMatch = async (embedding) => {
+const findNearestMatch = async (embedding, matchCount = 6) => {
     const { data, error } = await supabase.rpc('match_movienight_choice', {
         query_embedding: embedding,
         match_threshold: 0.5,
         match_count: 1,
     });
-
-    console.log("Embedding:", embedding);
-
-    console.log("Nearest match data:", data);
 
     if (error) {
         throw new Error(error.message || 'Error finding nearest match');
@@ -70,7 +143,7 @@ const findNearestMatch = async (embedding) => {
         throw new Error('No matching movie found');
     }
 
-    return data[0].content;
+    return data;
 
 };
 
@@ -86,8 +159,8 @@ const getChatCompletion = async (text, query) => {
     their favorite movie and why they like it, their mood for something new or a classic, their preference for something 
     fun, inspiring, scary or serious and the famous person they would like to bewith and why.
     Your main job is to formulate a short answer to the questions using the provided context. 
-    The answer should in this valid JSON object format, no markdown, no extra text.
-    JSON shape: { "title": string, "description": string }`,
+    The answer should in this valid JSON object format, no markdown, no extra text. Give 6 movie recommendations.
+    JSON shape: { "title": string, "description": string, "yearOfRelease": string }`,
         },
         {
             role: 'user',
@@ -105,7 +178,7 @@ const getChatCompletion = async (text, query) => {
             },
             body: JSON.stringify({
                 model: 'gpt-4o-mini',
-                response_format: {type: 'json_object'},
+                response_format: { type: 'json_object' },
                 messages: chatMessages,
                 temperature: 0.5,
                 frequency_penalty: 0.5,
@@ -129,14 +202,36 @@ const getChatCompletion = async (text, query) => {
 
 export const getAIMovieResponses = async (finalResponses) => {
 
+    await ensureEmbeddingsExist();
+
     const queryText = JSON.stringify(finalResponses);
     const queryEmbedding = await getQueryEmbedding(queryText);
-    const match = await findNearestMatch(queryEmbedding);
+    const matches = await findNearestMatch(queryEmbedding, 10);
 
-    console.log("Match:", match);
+    const seen = new Set();
+    const recommendations = [];
+
+    for (const movie of matches) {
+        if (seen.has(movie.title))
+            continue;
+        seen.add(movie.title);
+
+        recommendations.push({
+            title: movie.title,
+            year_of_release: movie.yearOfRelease,
+            description: movie.description,
+        });
+
+        if (recommendations.length === 6) break;
+    }
+
+    console.log("Match:", matches);
     console.log("Query:", queryText);
-    console.log("Query embedding:", queryEmbedding);
 
-    return getChatCompletion(match, queryText);
+    console.log("Recommendations:", recommendations);
+
+    //return getChatCompletion(match, queryText);
+
+    return { recommendations };
 
 };

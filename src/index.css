@@ -85,7 +85,7 @@ header {
 .answer-section .movie-description {
   color: #fff;
   font-family: "roboto_slabregular";
-  font-size: 16px;
+  /* font-size: 16px; */
 }
 
 .answer-section .movie-runtime,

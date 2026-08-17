@@ -1,12 +1,11 @@
 import { THEMOVIEDB_API_KEY } from '../config-keys.js';
 
 
-
-export const getMoviePoster = async ( currentMovie) => {
+export const getMoviePoster = async (movieTitle, movieYearRelease) => {
 
   try {
     const response = await fetch(
-      `https://api.themoviedb.org/3/search/movie?${currentMovie?.title}include_adult=false&language=en-US&primary_release_year=${currentMovie?.releaseYear}&page=1`,
+      `https://api.themoviedb.org/3/search/movie?query=${movieTitle}&include_adult=false&language=en-US&primary_release_year=${movieYearRelease}&page=1`,
       {
         method: 'GET',
         headers: {
@@ -16,7 +15,7 @@ export const getMoviePoster = async ( currentMovie) => {
       }
     );
     const data = await response.json(); 
-    console.log("Data:", data);
+    return data;
     
   } catch (error) {
     console.error('Error getting movie poster:', error);

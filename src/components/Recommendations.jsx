@@ -1,34 +1,89 @@
 import { useState, useEffect } from 'react';
 import { getMoviePoster } from '../services/getMoviePoster';
 
-export const Recommendations = ({ movieRecommendations, handleGoAgain}) => {
+export const Recommendations = ({ movieAIRecommendations, handleRepeat }) => {
+
+    const [currentRecommendationIndex, setCurrentRecommendationIndex] = useState(0);
+    const [currentMoviePosterURL, setCurrentMoviePosterURL] = useState(null);
+    const movieRecommendations = movieAIRecommendations.recommendations ?? [];
+    const finalRecommendationIndex = movieAIRecommendations.length - 1;
+
+    const currentMovie = movieRecommendations[currentRecommendationIndex];
+    const currentMovieTitle = currentMovie.title;
+    const currentMovieYear = currentMovie.yearOfRelease;
+    const movieDescription = currentMovie.description;
+
+    console.log("Current movie:", movieAIRecommendations.recommendations[currentRecommendationIndex]);
+    console.log("Movie recommendations:", movieAIRecommendations);
+
+    console.log(movieAIRecommendations.recommendations?.length);
+
+    const handleNextMovieRecommendation = () => {
+        setCurrentRecommendationIndex(currentRecommendationIndex + 1);
+        setCurrentMoviePosterURL(null);
+    };
+
+    const getMoviePosterFromAPI = async () => {
+
+        try {
+            const response = await getMoviePoster(currentMovieTitle, currentMovieYear);
+            setCurrentMoviePosterURL(response.results[0].poster_path);
+        } catch (error) {
+            console.log("Error ", error);
+            setCurrentMoviePosterURL(null);
+        }
+    };
+
+    useEffect(() => {
+        getMoviePosterFromAPI();
+    }, [currentMovie]);
 
     return (
-        <div className="answer-section">
-            {/* {movie && (
-                <>
-                    <h2 className="movie-title">{movie.title}</h2>
-                    <img src="" alt="" />
-                    <p className="movie-description">{movie.description}</p>
-                </>
-            )} */}
 
-            <>
-                <h2 className="movie-title">Arrival (2016)</h2>
-                <img src="https://image.tmdb.org/t/p/original/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg" alt="" />
-                <p className="movie-description">
-                    With its thought-provoking narrative and stunning visuals, 'Arrival' explores complex themes of communication 
-                    and understanding, making it an inspiring choice that resonates with Person 1's favor for 'Interstellar'.
-                </p>
-            </>
+        <>
+            {
+                currentMovie ? (
+                    <div className="answer-section">
 
-            <div className="form-footer">
-                <button type="button">
-                    Next Movie
-                </button>
+                        <h2 className="movie-title text-center">{currentMovieTitle} ({currentMovieYear})</h2>
+                        {
+                            currentMoviePosterURL ? (
+                                <img
+                                    src={`https://image.tmdb.org/t/p/original/${currentMoviePosterURL}`}
+                                    alt={currentMovieTitle}
+                                    className='w-[400px] h-auto rounded-md mx-auto'
+                                />
+                            ) : <p> Loading poster....</p>
+                        }
 
-            </div>
-        </div>
+                        <p className="movie-description text-center text-xl mt-2">
+                            {movieDescription}
+                        </p>
+
+                        <div className="form-footer">
+                            <button
+                                type="button"
+                                onClick={
+                                    currentRecommendationIndex >= finalRecommendationIndex
+                                        ? handleRepeat
+                                        : handleNextMovieRecommendation
+                                }
+                            >
+                                {currentRecommendationIndex >= finalRecommendationIndex ? 'Go Again' : 'Next Movie'}
+                            </button>
+
+                        </div>
+                    </div>
+                ) : (
+                    <p>
+                        No more recommendations
+                    </p>
+                )
+            }
+
+
+        </>
+
     );
-    
-}
+
+};
