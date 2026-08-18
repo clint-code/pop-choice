@@ -96,8 +96,8 @@ const ensureEmbeddingsExist = async () => {
     );
 
     //5. Embed and insert only the new ones
-    if(newMovies.length > 0){
-        await embedAndInsertMovies(newMovies)
+    if (newMovies.length > 0) {
+        await embedAndInsertMovies(newMovies);
     }
 
 };
@@ -126,59 +126,28 @@ const embedAndInsertMovies = async (movies) => {
     );
 
     const { error } = await supabase.from('movienight_choice')
-    .insert(movieData);
+        .insert(movieData);
 
-     if (error) {
+    if (error) {
         throw new Error(error.message || 'Error inserting rows into Supabase');
     }
 
-}
+};
 
 const parseMatchContent = (content) => {
-    const [header, ...descriptionParts] = content.split('|');
+    const [header] = content.split('|');
     const [titlePart, yearPart] = header.split(':');
 
     return {
         title: titlePart?.trim(),
         yearOfRelease: yearPart?.trim(),
-        description: descriptionParts.join('|').trim(),
     };
 };
 
 const createAndStoreEmbeddings = async () => {
 
     const movies = await parseMovieEntry();
-    await embedAndInsertMovies(movies)
-
-    // 1. Parse movies.txt into structured objects
-    // const movies = await parseMovieEntry();
-
-    //Embed each chunk and attach metadata for Supabase
-    // const movieData = await Promise.all(
-
-    //     movies.map(async (movie) => {
-
-    //         const embeddingResponse = await openai.embeddings.create({
-    //             model: OPENAI_EMBEDDING_MODEL,
-    //             input: movie.content,
-    //         });
-
-    //         return {
-    //             title: movie.title,
-    //             year_of_release: movie.yearOfRelease,
-    //             description: movie.description,
-    //             content: movie.content,
-    //             embedding: embeddingResponse.data[0].embedding
-    //         };
-
-    //     })
-    // );
-
-    // await supabase.from('movienight_choice').insert(movieData);
-
-    // if (error) {
-    //     throw new Error(error.message || 'Error inserting rows into Supabase');
-    // }
+    await embedAndInsertMovies(movies);
 
 };
 
@@ -209,23 +178,27 @@ const findNearestMatch = async (embedding, matchCount = 6) => {
 
 };
 
-const getChatCompletion = async (text, query) => {
+const getChatCompletion = async (matchedMovies, userQuery) => {
 
     const chatMessages = [
         {
             role: 'system',
-            content: `You are an enthusiastic movie expert who loves recommending movies to people. 
-    You will be given the following pieces of information - the number of users, their available movie runtime, 
-    their favorite movie and why they like it, their mood for something new or a classic, their preference for something 
-    fun, inspiring, scary or serious and the famous person they would like to bewith and why.
-    Your main job is to formulate a short answer to the questions using the provided context. 
-    The answer should in this valid JSON object format, no markdown, no extra text. Give 6 movie recommendations.
-    JSON shape: { "title": string, "description": string, "yearOfRelease": string }`,
+            content: `You are an enthusiastic movie expert.
+You will receive:
+1) User preferences from a movie-night form
+2) A fixed list of movies already selected for them
+Write a short, personalized description for EACH movie explaining why it fits their preferences.
+Do NOT change titles or years. Do NOT add or remove movies.
+Return valid JSON only:
+{
+  "recommendations": [
+    { "title": string, "yearOfRelease": string, "description": string }
+  ]
+}`,
         },
         {
             role: 'user',
-            //content: JSON.stringify(combinedFinalResponses)
-            content: `Context: ${text} Question: ${query}`,
+            content: `User preferences:\n${userQuery}\n\nMovies to describe:\n${JSON.stringify(matchedMovies)}`,
         }
     ];
 
@@ -240,7 +213,7 @@ const getChatCompletion = async (text, query) => {
                 model: 'gpt-4o-mini',
                 response_format: { type: 'json_object' },
                 messages: chatMessages,
-                temperature: 0.5,
+                temperature: 0.65,
                 frequency_penalty: 0.5,
             }),
         });
@@ -251,7 +224,9 @@ const getChatCompletion = async (text, query) => {
 
         const data = await response.json();
 
-        return JSON.parse(data.choices[0].message.content);
+        //return JSON.parse(data.choices[0].message.content);
+        const parsed = JSON.parse(data.choices[0].message.content);
+        return parsed.recommendations;
 
     } catch (error) {
         console.error('Error getting movie poster:', error);
@@ -269,21 +244,22 @@ export const getAIMovieResponses = async (finalResponses) => {
     const matches = await findNearestMatch(queryEmbedding, 6);
 
     const seen = new Set();
-    const recommendations = [];
+    const matchedMovies = [];
 
     for (const movie of matches) {
-        const parsed = parseMatchContent(movie.content);
+        const identity = parseMatchContent(movie.content);
 
-        if (!parsed.title || seen.has(parsed.title)) continue;
-        seen.add(parsed.title);
+        if (!identity.title || seen.has(identity.title)) continue;
+        seen.add(identity.title);
 
-        recommendations.push(parsed);
+        matchedMovies.push(identity);
+        if (matchedMovies.length === 6) break;
 
-        if (recommendations.length === 6) break;
     }
 
-    console.log("Recommendations:", recommendations);
+    const aiRecommendations = await getChatCompletion(matchedMovies, queryText);
+    console.log("Recommendations:", aiRecommendations);
 
-    return { recommendations };
+    return { recommendations: aiRecommendations };
 
 };

@@ -122,8 +122,8 @@ export default function StretchGoal() {
 
         try {
             const data = await getAIMovieResponses(finalResponses);
-            const movieTitle = data.title;
-            const movieDescription = data.description;
+            // const movieTitle = data.title;
+            // const movieDescription = data.description;
 
             setHitAIEndpoint(false);
             setAIMovieResponses(data);
