@@ -51,8 +51,6 @@ const parseMovieEntry = async () => {
         const title = titlePart.trim();
         const yearOfRelease = rest.trim().split('|')[0].trim();
 
-        //console.log("Movie title structure:", movies);
-
         movies.push({
             title,
             yearOfRelease,
@@ -66,26 +64,50 @@ const parseMovieEntry = async () => {
 
 };
 
+const movieKey = (title, year) => `${title} |${year}`;
+
 const ensureEmbeddingsExist = async () => {
-    const { count } = await supabase
+    //read all movies from movies.txt
+    const movies = await parseMovieEntry();
+
+    // const { count } = await supabase
+    //     .from('movienight_choice')
+    //     .select('*', { count: 'exact', head: true });
+
+    // if (count === 0) {
+    //     await createAndStoreEmbeddings();
+    // }
+
+    // 2. Read what's already in Supabase
+    const { data: existingRows, error } = await supabase
         .from('movienight_choice')
-        .select('*', { count: 'exact', head: true });
-    if (count === 0) {
-        await createAndStoreEmbeddings();
+        .select('title, year_of_release');
+
+    if (error) throw new Error(error.message);
+
+    // 3. Build a set of existing movies (title + year as unique key)
+    const existingKeys = new Set(
+        (existingRows ?? []).map(row => movieKey(row.title, row.year_of_release))
+    );
+
+    //4. Keep only movies that aren't in the database yet
+    const newMovies = movies.filter(
+        movie => !existingKeys.has(movieKey(movie.title, movie.yearOfRelease))
+    );
+
+    //5. Embed and insert only the new ones
+    if(newMovies.length > 0){
+        await embedAndInsertMovies(newMovies)
     }
+
 };
 
-const createAndStoreEmbeddings = async () => {
-
-    // 1. Parse movies.txt into structured objects
-    const movies = await parseMovieEntry();
+const embedAndInsertMovies = async (movies) => {
 
     //Embed each chunk and attach metadata for Supabase
     const movieData = await Promise.all(
 
         movies.map(async (movie) => {
-            console.log('Embedding input:', movie?.content);
-            console.log('Type:', typeof ( movie?.content));
 
             const embeddingResponse = await openai.embeddings.create({
                 model: OPENAI_EMBEDDING_MODEL,
@@ -103,21 +125,61 @@ const createAndStoreEmbeddings = async () => {
         })
     );
 
-    // const { data, error } = await supabase
-    //     .from('match_movienight_choice')
-    //     .upsert(movieData, { onConflict: 'unique_content_hash' });
+    const { error } = await supabase.from('movienight_choice')
+    .insert(movieData);
 
-    await supabase.from('movienight_choice').insert(movieData);
-
-    // const { error } = await supabase
-    //     .from('movienight_choice')
-    //     .upsert(movieData, { onConflict: ['title'] });
-
-    if (error) {
+     if (error) {
         throw new Error(error.message || 'Error inserting rows into Supabase');
     }
 
-    console.log("Embedding and storing is COMPLETE!");
+}
+
+const parseMatchContent = (content) => {
+    const [header, ...descriptionParts] = content.split('|');
+    const [titlePart, yearPart] = header.split(':');
+
+    return {
+        title: titlePart?.trim(),
+        yearOfRelease: yearPart?.trim(),
+        description: descriptionParts.join('|').trim(),
+    };
+};
+
+const createAndStoreEmbeddings = async () => {
+
+    const movies = await parseMovieEntry();
+    await embedAndInsertMovies(movies)
+
+    // 1. Parse movies.txt into structured objects
+    // const movies = await parseMovieEntry();
+
+    //Embed each chunk and attach metadata for Supabase
+    // const movieData = await Promise.all(
+
+    //     movies.map(async (movie) => {
+
+    //         const embeddingResponse = await openai.embeddings.create({
+    //             model: OPENAI_EMBEDDING_MODEL,
+    //             input: movie.content,
+    //         });
+
+    //         return {
+    //             title: movie.title,
+    //             year_of_release: movie.yearOfRelease,
+    //             description: movie.description,
+    //             content: movie.content,
+    //             embedding: embeddingResponse.data[0].embedding
+    //         };
+
+    //     })
+    // );
+
+    // await supabase.from('movienight_choice').insert(movieData);
+
+    // if (error) {
+    //     throw new Error(error.message || 'Error inserting rows into Supabase');
+    // }
+
 };
 
 const getQueryEmbedding = async (text) => {
@@ -132,7 +194,7 @@ const findNearestMatch = async (embedding, matchCount = 6) => {
     const { data, error } = await supabase.rpc('match_movienight_choice', {
         query_embedding: embedding,
         match_threshold: 0.5,
-        match_count: 1,
+        match_count: 6,
     });
 
     if (error) {
@@ -148,8 +210,6 @@ const findNearestMatch = async (embedding, matchCount = 6) => {
 };
 
 const getChatCompletion = async (text, query) => {
-    console.log("Get chat completion, Text:", text);
-    console.log("Get chat completion, Query", query);
 
     const chatMessages = [
         {
@@ -206,31 +266,23 @@ export const getAIMovieResponses = async (finalResponses) => {
 
     const queryText = JSON.stringify(finalResponses);
     const queryEmbedding = await getQueryEmbedding(queryText);
-    const matches = await findNearestMatch(queryEmbedding, 10);
+    const matches = await findNearestMatch(queryEmbedding, 6);
 
     const seen = new Set();
     const recommendations = [];
 
     for (const movie of matches) {
-        if (seen.has(movie.title))
-            continue;
-        seen.add(movie.title);
+        const parsed = parseMatchContent(movie.content);
 
-        recommendations.push({
-            title: movie.title,
-            year_of_release: movie.yearOfRelease,
-            description: movie.description,
-        });
+        if (!parsed.title || seen.has(parsed.title)) continue;
+        seen.add(parsed.title);
+
+        recommendations.push(parsed);
 
         if (recommendations.length === 6) break;
     }
 
-    console.log("Match:", matches);
-    console.log("Query:", queryText);
-
     console.log("Recommendations:", recommendations);
-
-    //return getChatCompletion(match, queryText);
 
     return { recommendations };
 

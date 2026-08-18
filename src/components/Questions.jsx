@@ -139,7 +139,7 @@ export const Questions = ({
             <div className="form-footer">
                 <button
                     type="submit"
-                    disabled={!favoriteMovie || !movieType || !movieMood || !famousPersonPreference}>
+                    disabled={!favoriteMovie || !movieType || !movieMood || !famousPersonPreference || hitAIEndpoint}>
                     {buttonText()}
                 </button>
             </div>

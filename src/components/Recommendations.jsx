@@ -6,17 +6,13 @@ export const Recommendations = ({ movieAIRecommendations, handleRepeat }) => {
     const [currentRecommendationIndex, setCurrentRecommendationIndex] = useState(0);
     const [currentMoviePosterURL, setCurrentMoviePosterURL] = useState(null);
     const movieRecommendations = movieAIRecommendations.recommendations ?? [];
-    const finalRecommendationIndex = movieAIRecommendations.length - 1;
+
+    const finalRecommendationIndex = movieRecommendations.length - 1;
 
     const currentMovie = movieRecommendations[currentRecommendationIndex];
     const currentMovieTitle = currentMovie.title;
     const currentMovieYear = currentMovie.yearOfRelease;
     const movieDescription = currentMovie.description;
-
-    console.log("Current movie:", movieAIRecommendations.recommendations[currentRecommendationIndex]);
-    console.log("Movie recommendations:", movieAIRecommendations);
-
-    console.log(movieAIRecommendations.recommendations?.length);
 
     const handleNextMovieRecommendation = () => {
         setCurrentRecommendationIndex(currentRecommendationIndex + 1);

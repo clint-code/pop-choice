@@ -35,7 +35,6 @@ export default function StretchGoal() {
         setCollectedFormResponses(newUserPreferences);
 
         setStats(true);
-        console.log("Movie data preference:", newUserPreferences);
     };
 
     const handleNextPerson = (e) => {
@@ -120,14 +119,11 @@ export default function StretchGoal() {
     };
 
     const getAIMovieRecommendations = async (finalResponses) => {
-        console.log("Movie data preference and responses:", finalResponses);
 
         try {
             const data = await getAIMovieResponses(finalResponses);
             const movieTitle = data.title;
             const movieDescription = data.description;
-
-            console.log("Data:", data);
 
             setHitAIEndpoint(false);
             setAIMovieResponses(data);

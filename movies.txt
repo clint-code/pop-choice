@@ -4,7 +4,7 @@ Set in a future where Earth is becoming uninhabitable due to crop failures and e
 Ratatouille: 2007 | G | 1h 51m | 8.1 rating
 A talented rat named Remy dreams of becoming a chef in Paris. He forms an unlikely partnership with a young kitchen worker, Linguini, to create extraordinary dishes at a famous restaurant. Stars Patton Oswalt, Lou Romano, Brad Garrett and Ian Holm.
 
-Avengers: Infinity War: 2018 | PG-13 | 2h 29m | 8.4 rating
+Avengers Infinity War: 2018 | PG-13 | 2h 29m | 8.4 rating
 The Avengers and their allies unite to stop Thanos from collecting all six Infinity Stones and carrying out his devastating plan to eliminate half of all life in the universe. Stars Robert Downey Jr., Chris Hemsworth, Mark Ruffalo, Chris Evans, Scarlett Johansson, Benedict Cumberbatch and Josh Brolin
 
 A Series of Unfortunate Events: 2004 | R | 1h 48m | 6.8 rating
@@ -28,7 +28,7 @@ Paul Atreides, heir to a noble family, travels to the desert planet Arrakis, the
 Logan: 2017 | R | 2h 17m | 8.1 rating
 n a future where mutants are nearly extinct, an aging and weary Wolverine (Logan) must protect a young mutant girl named Laura while caring for an ailing Professor Charles Xavier. Their journey becomes a desperate fight for survival. Stars Hugh Jackman, Patrick Stewart, Dafne Keen, Boyd Holbrook, Richard E. Grant and Stephen Merchant.
 
-Spider-Man: Across the Spider-Verse: 2023 | PG-13 | 2 hr 20min | 8.5 rating
+Spider-Man Across the Spider-Verse: 2023 | PG-13 | 2 hr 20min | 8.5 rating
 Miles Morales catapults across the Multiverse, where he encounters a team of Spider-People charged with protecting its very existence. When the heroes clash on how to handle a new threat, Miles must redefine what it means to be a hero. Animation, Action, Adventure film released in 2023. Directed by Joaquim Dos Santos, Kemp Powers an Justin K. Thompson. Written by Phil Lord, Christopher Miller and Dave Callaham. Starring: Shameik Moore, Hailee Steinfeld and Brian Tyree Henry
 
 The Prestige: 2006 | PG-13 | 2h 10m | 8.5 rating
@@ -37,5 +37,11 @@ The Prestige: 2006 | PG-13 | 2h 10m | 8.5 rating
 Inception: 2010 | PG-13 | 2h 28m | 8.8 rating
 'Inception' tells the story of a thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O., but his tragic past may doom the project and his team to disaster. Directed by Christopher Nolan and stars actors Leonardo DiCaprio, Joseph Gordon-Levitt, Elliot Page.
 
-Top Gun: Maverick: 2022 | PG-13 | 2h 10m | 8.3 rating
+Top Gun Maverick: 2022 | PG-13 | 2h 10m | 8.3 rating
 The action drama 'Top Gun: Maverick' is about Pete "Maverick" Mitchell, a top naval aviator who served in the Navy for over three decades and is now a test pilot. He is determined to keep pushing the limits of flying and avoid promotions that would take him away from the cockpit. Maverick is currently training a group of graduates for a unique mission but must also confront his past and fears. Ultimately, the mission will require those who choose to fly it to make the ultimate sacrifice. Joseph Kosinski directed Top Gun: Maverick, which stars Tom Cruise, Jennifer Connelly, and Miles Teller.
+
+Inglourious Basterds: 2009 | R | 2h 33m | 8.4 rating
+During World War II in Nazi-occupied France, a group of Jewish-American soldiers known as the "Basterds" plot to assassinate Nazi leaders, while a young Jewish cinema owner pursues her own revenge against the regime. Starring Brad Pitt, Christoph Waltz, Mélanie Laurent, Diane Kruger, Michael Fassbender, Eli Roth.
+
+Joker: 2019 | R | 2h 2m | 8.3 rating
+Arthur Fleck, a struggling clown and aspiring comedian, is rejected by society and gradually descends into madness, transforming into the infamous criminal known as the Joker. Starring Joaquin Phoenix, Robert De Niro, Zazie Beetz, Frances Conroy, Shea Whigham.
