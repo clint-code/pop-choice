@@ -26,6 +26,6 @@ npm start
     <li>Make app for N+ people ✅ </li>
     <li>Multiple choice questions ✅</li>
     <li>Use text chunking from movies.txt ✅</li>
-    <li>Show a movie poster (use this API, https://developer.themoviedb.org/docs/getting-started)  </li>
-    <li>Add "Next Movie" button for next recommendation</li>
+    <li>Show a movie poster (use this API, https://developer.themoviedb.org/docs/getting-started) ✅ </li>
+    <li>Add "Next Movie" button for next recommendation ✅</li>
 </ul>
