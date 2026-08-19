@@ -40,7 +40,7 @@ export const Recommendations = ({ movieAIRecommendations, handleRepeat }) => {
             {
                 currentMovie ? (
                     <div className="answer-section">
-
+                        
                         <h2 className="movie-title text-center">{currentMovieTitle} ({currentMovieYear})</h2>
                         {
                             currentMoviePosterURL ? (

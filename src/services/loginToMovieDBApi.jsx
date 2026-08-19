@@ -1,20 +1,12 @@
-import { THEMOVIEDB_API_KEY } from '../config-keys.js';
+import { WORKER_URL } from '../config-keys.js';
 
 
 export const getMovieDBAccess = async () => {
 
   try {
-    const response = await fetch(
-      `https://api.themoviedb.org/3/authentication`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${THEMOVIEDB_API_KEY}`
-        }
-      }
-    );
-    await response.json();
+    const response = await fetch(`${WORKER_URL}/api/tmdb/authentication`);
+
+    return  response.json();
   } catch (error) {
     console.error('Error getting movie poster:', error);
 

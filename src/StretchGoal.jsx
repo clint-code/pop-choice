@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getMoviePoster } from './services/getMoviePoster';
-// import { getMovieDBAccess } from './services/loginToMovieDBApi';
 import { getAIMovieResponses } from './services/searchMovieRecommendations';
 
-import { THEMOVIEDB_API_KEY } from './config-keys';
+import { WORKER_URL } from './config-keys';
 
 import popChoiceLogo from '/assets/img/PopChoice-Icon.png';
-// import Header from './components/header';
 import { Questions } from './components/Questions';
 import { Recommendations } from './components/Recommendations';
 
@@ -97,16 +95,12 @@ export default function StretchGoal() {
         }
 
         try {
-            const response = await fetch(
-                `https://api.themoviedb.org/3/authentication`,
-                {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${THEMOVIEDB_API_KEY}`
-                    }
-                }
-            );
+            const response = await fetch(`${WORKER_URL}/api/tmdb/authentication`);
+
+            if (!response.ok) {
+                throw new Error(`TMDB auth failed (${response.status})`);
+            }
+
             await response.json();
         } catch (error) {
             console.error('Error! ', error);
@@ -122,8 +116,6 @@ export default function StretchGoal() {
 
         try {
             const data = await getAIMovieResponses(finalResponses);
-            // const movieTitle = data.title;
-            // const movieDescription = data.description;
 
             setHitAIEndpoint(false);
             setAIMovieResponses(data);
@@ -152,8 +144,8 @@ export default function StretchGoal() {
             {aIMovieRecommendations ? (
                 <Recommendations
                     movieAIRecommendations={aIMovieResponses}
-                    handleRepeat = {handleRepeat}
-                 />
+                    handleRepeat={handleRepeat}
+                />
             ) : (
                 <>
                     <header>

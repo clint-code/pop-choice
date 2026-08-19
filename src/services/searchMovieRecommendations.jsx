@@ -1,6 +1,22 @@
-import { openai, supabase } from '../config.js';
-import { OPENAI_API_KEY, OPENAI_EMBEDDING_MODEL } from '../config-keys.js';
+import { WORKER_URL } from '../config-keys.js';
+import { OPENAI_EMBEDDING_MODEL } from '../config-keys.js';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
+
+const createEmbedding = async (input) => {
+    const response = await fetch(`${WORKER_URL}/api/openai/embeddings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            model: OPENAI_EMBEDDING_MODEL,
+            input,
+        }),
+    });
+    if (!response.ok) {
+        throw new Error(`Embedding request failed (${response.status})`);
+    }
+    const data = await response.json();
+    return data.data[0].embedding;
+};
 
 const chunkMovies = async (movies) => {
 
@@ -70,21 +86,17 @@ const ensureEmbeddingsExist = async () => {
     //read all movies from movies.txt
     const movies = await parseMovieEntry();
 
-    // const { count } = await supabase
-    //     .from('movienight_choice')
-    //     .select('*', { count: 'exact', head: true });
-
-    // if (count === 0) {
-    //     await createAndStoreEmbeddings();
-    // }
-
     // 2. Read what's already in Supabase
-    const { data: existingRows, error } = await supabase
-        .from('movienight_choice')
-        .select('title, year_of_release');
+    // const { data: existingRows, error } = await supabase
+    //     .from('movienight_choice')
+    //     .select('title, year_of_release');
+    const response = await fetch(`${WORKER_URL}/api/supabase/movies`);
+    const payload = await response.json();
+    const existingRows = payload;
 
-    if (error) throw new Error(error.message);
-
+    if (!response.ok) {
+        throw new Error(existingRows.message || existingRows.error || 'Failed to load movies');
+    }
     // 3. Build a set of existing movies (title + year as unique key)
     const existingKeys = new Set(
         (existingRows ?? []).map(row => movieKey(row.title, row.year_of_release))
@@ -109,24 +121,20 @@ const embedAndInsertMovies = async (movies) => {
 
         movies.map(async (movie) => {
 
-            const embeddingResponse = await openai.embeddings.create({
-                model: OPENAI_EMBEDDING_MODEL,
-                input: movie.content,
-            });
+            const embedding = await createEmbedding(movie.content);
 
             return {
                 title: movie.title,
                 year_of_release: movie.yearOfRelease,
                 description: movie.description,
                 content: movie.content,
-                embedding: embeddingResponse.data[0].embedding
+                embedding,
             };
 
         })
     );
 
-    const { error } = await supabase.from('movienight_choice')
-        .insert(movieData);
+    const { error } = await supabase.from('movienight_choice').insert(movieData);
 
     if (error) {
         throw new Error(error.message || 'Error inserting rows into Supabase');
@@ -152,27 +160,35 @@ const createAndStoreEmbeddings = async () => {
 };
 
 const getQueryEmbedding = async (text) => {
-    const embeddingResponse = await openai.embeddings.create({
-        model: OPENAI_EMBEDDING_MODEL,
-        input: text,
-    });
-    return embeddingResponse.data[0].embedding;
+    return createEmbedding(text);
 };
 
 const findNearestMatch = async (embedding, matchCount = 6) => {
-    const { data, error } = await supabase.rpc('match_movienight_choice', {
-        query_embedding: embedding,
-        match_threshold: 0.5,
-        match_count: 6,
+    // const { data, error } = await supabase.rpc('match_movienight_choice', {
+    //     query_embedding: embedding,
+    //     match_threshold: 0.5,
+    //     match_count: 6,
+    // });
+
+    // if (error) {
+    //     throw new Error(error.message || 'Error finding nearest match');
+    // }
+
+    // if (!data?.[0]?.content) {
+    //     throw new Error('No matching movie found');
+    // }
+
+    const response = await fetch(`${WORKER_URL}/api/supabase/match`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            query_embedding: embedding,
+            match_threshold: 0.5,
+            match_count: 6,
+        }),
     });
 
-    if (error) {
-        throw new Error(error.message || 'Error finding nearest match');
-    }
-
-    if (!data?.[0]?.content) {
-        throw new Error('No matching movie found');
-    }
+    const data = await response.json();
 
     return data;
 
@@ -187,7 +203,8 @@ const getChatCompletion = async (matchedMovies, userQuery) => {
 You will receive:
 1) User preferences from a movie-night form
 2) A fixed list of movies already selected for them
-Write a short, personalized description for EACH movie explaining why it fits their preferences.
+Write a short, personalized description for EACH movie explaining why it fits their preferences. Indicate if it's Person 1 or Person 2, etc, based of the personalized
+description of the person that recommended the particular movie in the description.
 Do NOT change titles or years. Do NOT add or remove movies.
 Return valid JSON only:
 {
@@ -203,18 +220,17 @@ Return valid JSON only:
     ];
 
     try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const response = await fetch(`${WORKER_URL}/api/openai/chat/completions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${OPENAI_API_KEY}`,
             },
             body: JSON.stringify({
                 model: 'gpt-4o-mini',
                 response_format: { type: 'json_object' },
                 messages: chatMessages,
                 temperature: 0.65,
-                frequency_penalty: 0.5,
+                frequency_penalty: 0.55,
             }),
         });
 

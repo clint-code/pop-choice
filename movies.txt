@@ -10,7 +10,7 @@ Oppenheimer: 2023 | R | 3h | 8.6 rating
 Avengers Infinity War: 2018 | PG-13 | 2h 29m | 8.4 rating
 The Avengers and their allies unite to stop Thanos from collecting all six Infinity Stones and carrying out his devastating plan to eliminate half of all life in the universe. Stars Robert Downey Jr., Chris Hemsworth, Mark Ruffalo, Chris Evans, Scarlett Johansson, Benedict Cumberbatch and Josh Brolin
 
-A Series of Unfortunate Events: 2004 | R | 1h 48m | 6.8 rating
+A Series of Unfortunate Events: 2004 | PG-13 | 1h 48m | 6.8 rating
 After their parents die in a fire, the Baudelaire children are placed in the care of the scheming Count Olaf, who will stop at nothing to steal their inheritance. Stars Jim Carrey, Jude Law, Meryl Streep, Emily Browning and Liam Aiken.
 
 Soul: 2020 | PG | 1h 40m | 8.0 rating
@@ -49,11 +49,11 @@ During World War II in Nazi-occupied France, a group of Jewish-American soldiers
 Joker: 2019 | R | 2h 2m | 8.3 rating
 Arthur Fleck, a struggling clown and aspiring comedian, is rejected by society and gradually descends into madness, transforming into the infamous criminal known as the Joker. Starring Joaquin Phoenix, Robert De Niro, Zazie Beetz, Frances Conroy, Shea Whigham.
 
-A Haunting in Venice: 2023 | PG-13 | 1h 43m | 6.8 rating
-In 'A Haunting in Venice,' a post-WWII crime drama set in Venice, a retired detective attends a seance. Following a guest's murder, he's compelled to solve the mystery. The film's director is Kenneth Branagh, and stars Kenneth Branagh, Michelle Yeoh and Jamie Dornan.
+The Dark Knight: 2008 | PG-13 | 2h 32m | 9.1 rating
+When a menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman, James Gordon and Harvey Dent must work together to put an end to the madness.
 
-Glass Onion: 2022 | PG-13 | 2h 19m | 7.1 rating
-In the comedic film 'Glass Onion', five long-time friends get invited to the Greek island home of billionaire Miles Bron. All five know Bron from way back and owe him their current wealth, fame, and careers. The main event is a murder-weekend game with Bron to be the victim. In reality, they all have reasons to kill him. Also invited is Benoit Blanc, the world's greatest detective. Rian Johnson directed Glass Onion and it stars Daniel Craig, Edward Norton and Kate Hudson.
+Wake Up Dead Man: 2025 | PG-13 | 2h 19m | 7.3 rating
+Detective Benoit Blanc teams up with an earnest young priest to investigate a perfectly impossible crime at a small-town church with a dark history.
 
-Fences: 2016 | PG-13 | 2h 19m | 7.2 rating
-In 'Fences', a working-class African-American father tries to raise his family in the 1950s, while coming to terms with the events of his life. Denzel Washington directed Fences and the film stars Denzel Washington, Viola Davis, Jovan Adepo, Stephen McKinley Henderson and Russel Hornsby.
+Jurassic Park: 1993 | PG-13 | 2h 7m | 8.2 rating
+An industrialist invites some experts to visit his theme park of cloned dinosaurs. After a power failure, the creatures run loose, putting everyone's lives, including his grandchildren's, in danger.

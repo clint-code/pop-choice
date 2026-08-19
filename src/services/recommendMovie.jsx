@@ -1,18 +1,24 @@
-import { openai, supabase } from '../config.js';
 import movies from '../content.js';
-import { OPENAI_API_KEY, OPENAI_EMBEDDING_MODEL } from '../config-keys.js';
+import { WORKER_URL, OPENAI_EMBEDDING_MODEL } from '../config-keys.js';
 
 function toEmbeddingInput(movie) {
   return `${movie.title} (${movie.releaseYear}): ${movie.content}`;
 }
 
 const getEmbedding = async (text) => {
-  const response = await openai.embeddings.create({
-    model: OPENAI_EMBEDDING_MODEL,
-    input: text,
+  const response = await fetch(`${WORKER_URL}/api/openai/embeddings`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: OPENAI_EMBEDDING_MODEL,
+      input: text,
+    }),
   });
-
-  return response.data[0].embedding;
+  if (!response.ok) {
+    throw new Error(`Embedding request failed (${response.status})`);
+  }
+  const data = await response.json();
+  return data.data[0].embedding;
 };
 
 const syncMovieEmbeddings = async () => {
@@ -35,9 +41,12 @@ const syncMovieEmbeddings = async () => {
     });
   }
 
-  const { error } = await supabase
-    .from('popchoice_movies')
-    .upsert(rows, { onConflict: ['title'] });
+  // const { error } = await supabase
+  //   .from('popchoice_movies')
+  //   .upsert(rows, { onConflict: ['title'] });
+
+  const response = await fetch(`${WORKER_URL}/api/supabase/movies`);
+  const payload = await response.json();
 
   if (error) {
     throw new Error(error.message || 'Error inserting rows into Supabase');
@@ -45,12 +54,21 @@ const syncMovieEmbeddings = async () => {
 };
 
 const findNearestMatch = async (embedding) => {
-  const { data, error } = await supabase.rpc('match_popchoice_movies', {
-    query_embedding: embedding,
-    match_threshold: 0.5,
-    match_count: 1,
+  // const { data, error } = await supabase.rpc('match_popchoice_movies', {
+  //   query_embedding: embedding,
+  //   match_threshold: 0.5,
+  //   match_count: 1,
+  // });
+
+  const response = await fetch(`${WORKER_URL}/api/supabase/match`, {
+    body: JSON.stringify({
+      query_embedding: embedding,
+      match_threshold: 0.5,
+      match_count: 1,
+    }),
   });
 
+  const data = await response.json();
   if (error) {
     throw new Error(error.message || 'Error finding nearest match');
   }
@@ -79,11 +97,10 @@ const getChatCompletion = async (text, query) => {
     },
   ];
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch(`${WORKER_URL}/api/openai/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
       model: 'gpt-4o-mini',

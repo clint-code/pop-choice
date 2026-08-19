@@ -14,7 +14,7 @@ button{
 }
 
 header {
-  width: 50%;
+  width: 90%;
   margin: 0 auto;
   text-align: center;
 }
@@ -32,7 +32,7 @@ header {
 
 .question-section,
 .answer-section {
-  width: 50%;
+  width: 90%;
   margin: 0 auto;
 }
 
