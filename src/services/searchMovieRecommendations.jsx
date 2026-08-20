@@ -1,6 +1,7 @@
 import { WORKER_URL } from '../config-keys.js';
 import { OPENAI_EMBEDDING_MODEL } from '../config-keys.js';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
+import moviesText from '../../movies.txt?raw';
 
 const createEmbedding = async (input) => {
     const response = await fetch(`${WORKER_URL}/api/openai/embeddings`, {
@@ -46,8 +47,8 @@ const chunkMovies = async (movies) => {
 
 const parseMovieEntry = async () => {
 
-    //load movies.txt as one string
-    const text = await fetch('./movies.txt').then(res => res.text());
+    // movies.txt is bundled at build time so Netlify does not need to serve it as a static file
+    const text = moviesText;
 
     //split the text into movie blocks
     const movieBlocks = text

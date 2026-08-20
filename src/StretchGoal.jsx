@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getMoviePoster } from './services/getMoviePoster';
 import { getAIMovieResponses } from './services/searchMovieRecommendations';
 
 import { WORKER_URL } from './config-keys';
@@ -19,7 +17,6 @@ export default function StretchGoal() {
     const [hitAIEndpoint, setHitAIEndpoint] = useState(false);
     const [aIMovieResponses, setAIMovieResponses] = useState([]);
     const [aIMovieRecommendations, setAIMovieRecommendations] = useState(false);
-    const navigate = useNavigate();
 
     const startUserPreferences = (e) => {
         e.preventDefault();
@@ -226,10 +223,9 @@ export default function StretchGoal() {
                 </>
 
             )}
+            
         </div>
 
-
     );
-
 
 }
