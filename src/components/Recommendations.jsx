@@ -47,7 +47,7 @@ export const Recommendations = ({ movieAIRecommendations, handleRepeat }) => {
                                 <img
                                     src={`https://image.tmdb.org/t/p/original/${currentMoviePosterURL}`}
                                     alt={currentMovieTitle}
-                                    className='w-[400px] h-auto rounded-md mx-auto'
+                                    className='w-[350px] h-auto rounded-md mx-auto'
                                 />
                             ) : <p> Loading poster....</p>
                         }

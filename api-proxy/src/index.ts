@@ -64,7 +64,10 @@ export default {
 			// POST /api/openai/embeddings
 			// Replaces: openai.embeddings.create(...) in config.js / services
 			if (url.pathname === "/api/openai/embeddings" && request.method === "POST") {
-				const body = await request.json();
+				const body = (await request.json()) as Record<string, unknown>;
+				if (!body.model) {
+					body.model = "text-embedding-ada-002";
+				}
 				const response = await fetch("https://api.openai.com/v1/embeddings", {
 					method: "POST",
 					headers: {
