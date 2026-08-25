@@ -88,9 +88,6 @@ const ensureEmbeddingsExist = async () => {
     const movies = await parseMovieEntry();
 
     // 2. Read what's already in Supabase
-    // const { data: existingRows, error } = await supabase
-    //     .from('movienight_choice')
-    //     .select('title, year_of_release');
     const response = await fetch(`${WORKER_URL}/api/supabase/movies`);
     const payload = await response.json();
     const existingRows = payload;
@@ -135,10 +132,18 @@ const embedAndInsertMovies = async (movies) => {
         })
     );
 
-    const { error } = await supabase.from('movienight_choice').insert(movieData);
+    console.log("Movie data:", movieData);
 
-    if (error) {
-        throw new Error(error.message || 'Error inserting rows into Supabase');
+    const response = await fetch(`${WORKER_URL}/api/supabase/movies`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(movieData),
+    });
+
+    const payload = await response.json();
+
+    if (!response.ok) {
+        throw new Error(payload.message || payload.error || 'Error inserting rows into Supabase');
     }
 
 };
@@ -165,19 +170,6 @@ const getQueryEmbedding = async (text) => {
 };
 
 const findNearestMatch = async (embedding, matchCount = 6) => {
-    // const { data, error } = await supabase.rpc('match_movienight_choice', {
-    //     query_embedding: embedding,
-    //     match_threshold: 0.5,
-    //     match_count: 6,
-    // });
-
-    // if (error) {
-    //     throw new Error(error.message || 'Error finding nearest match');
-    // }
-
-    // if (!data?.[0]?.content) {
-    //     throw new Error('No matching movie found');
-    // }
 
     const response = await fetch(`${WORKER_URL}/api/supabase/match`, {
         method: 'POST',
