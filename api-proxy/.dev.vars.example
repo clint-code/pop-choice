@@ -1,0 +1,4 @@
+OPENAI_API_KEY=your_openai_key
+SUPABASE_API_KEY=your_supabase_key
+SUPABASE_URL=https://your-project.supabase.co
+THEMOVIEDB_API_KEY=your_tmdb_key
